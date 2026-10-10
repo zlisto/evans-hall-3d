@@ -11,15 +11,15 @@ import os
 import uuid
 from collections import OrderedDict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_ai import UsageLimits
 from pydantic_ai.messages import ModelMessage, ModelResponse, ToolCallPart
 
-from . import db
+from . import auth, db, spend
 from .agents import agent_for, load_style
 from .config import CORS_ORIGINS, MODEL_NAME
-from .schemas import ChatReply, ChatRequest, ProfessorProfile, ProfessorSummary
+from .schemas import ChatReply, ChatRequest, LoginReply, LoginRequest, ProfessorProfile, ProfessorSummary
 
 log = logging.getLogger("som")
 
@@ -33,14 +33,16 @@ def _key_fingerprint() -> str:
 
 
 print(f"[startup] model={MODEL_NAME} | PORTKEY_API_KEY: {_key_fingerprint()} | PORTKEY_VIRTUAL_KEY: {'set' if os.getenv('PORTKEY_VIRTUAL_KEY') else 'not set'}", flush=True)
+print(f"[startup] {auth.setup_users()} | spend limit ${spend.LIMIT_USD:g} per login session", flush=True)
+spend.setup()
 
 app = FastAPI(title="Yale SOM Virtual: professor agents")
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["*"])
 
 MAX_TURNS = 10  # chat turns of history kept per conversation
 MAX_SESSIONS = 500
-# (slug, session_id) -> list of turns; each turn is that run's new messages (tool calls stay paired)
-sessions: OrderedDict[tuple[str, str], list[list[ModelMessage]]] = OrderedDict()
+# (email, slug, session_id) -> list of turns; each turn is that run's new messages (tool calls stay paired)
+sessions: OrderedDict[tuple[str, str, str], list[list[ModelMessage]]] = OrderedDict()
 
 
 def _faculty(slug: str) -> str:
@@ -65,6 +67,12 @@ def health() -> dict:
     return {"ok": True, "model": MODEL_NAME, "professors": len(db.professors())}
 
 
+@app.get("/api/avatars")
+def avatars() -> dict:
+    """slug -> appearance for professors with a researched look (the 3D client builds avatars from these)."""
+    return db.appearances()
+
+
 @app.get("/api/professors", response_model=list[ProfessorSummary])
 def list_professors() -> list[dict]:
     return [_summary(slug, faculty) for slug, faculty in db.professors().items()]
@@ -80,11 +88,25 @@ def get_professor(slug: str) -> dict:
     return {**_summary(slug, faculty), "greeting": greeting, "rooms": rooms}
 
 
+@app.post("/api/auth/login", response_model=LoginReply)
+def login(req: LoginRequest, request: Request) -> dict:
+    # Render sits behind a proxy, so the caller's IP is the first X-Forwarded-For entry
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
+    return {"token": auth.check_login(req.email, req.password, ip), "email": req.email.strip().lower()}
+
+
+@app.get("/api/auth/me")
+def me(user: auth.User = Depends(auth.current_user)) -> dict:
+    return {"email": user.email, "spent_usd": spend.spent(user.session_id), "limit_usd": spend.LIMIT_USD}
+
+
 @app.post("/api/professors/{slug}/chat", response_model=ChatReply)
-async def chat(slug: str, req: ChatRequest) -> dict:
+async def chat(slug: str, req: ChatRequest, user: auth.User = Depends(auth.current_user)) -> dict:
     _faculty(slug)
+    if spend.spent(user.session_id) >= spend.LIMIT_USD:
+        raise HTTPException(402, spend.LIMIT_MESSAGE)
     sid = req.session_id or uuid.uuid4().hex
-    key = (slug, sid)
+    key = (user.email, slug, sid)
     turns = sessions.pop(key, [])
     history = [m for turn in turns for m in turn]
     try:
@@ -93,9 +115,10 @@ async def chat(slug: str, req: ChatRequest) -> dict:
         log.exception("chat failed for %s", slug)
         sessions[key] = turns
         raise HTTPException(502, f"The professor's AI brain hit an error: {type(e).__name__}") from e
+    total = spend.add(user.session_id, user.email, result.usage)
     new = result.new_messages()
     sessions[key] = (turns + [new])[-MAX_TURNS:]
     while len(sessions) > MAX_SESSIONS:
         sessions.popitem(last=False)
     tools = [p.tool_name for m in new if isinstance(m, ModelResponse) for p in m.parts if isinstance(p, ToolCallPart)]
-    return {"reply": result.output, "session_id": sid, "tools_used": tools}
+    return {"reply": result.output, "session_id": sid, "tools_used": tools, "spent_usd": total, "limit_usd": spend.LIMIT_USD}

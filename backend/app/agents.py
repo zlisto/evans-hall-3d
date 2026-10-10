@@ -11,7 +11,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIResponsesModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
-from . import db
+from . import db, rooms
 from .config import MODEL_NAME, PORTKEY_BASE_URL, PROFILES, PROMPTS, STYLES
 from .tools import ALL_TOOLS
 
@@ -24,7 +24,11 @@ class Style:
 
 
 def load_style(slug: str) -> Style:
-    """styles/<slug>.md may start with 'greeting: ...' and a '---' line; the rest is the style."""
+    """A researched profile in the DB wins; otherwise styles/<slug>.md, which may start with
+    'greeting: ...' and a '---' line (the rest is the style)."""
+    prof = db.profile(slug)
+    if prof and prof["speaking_style"]:
+        return Style(prof["speaking_style"].strip(), prof["greeting"].strip(), True)
     path = STYLES / f"{slug}.md"
     custom = path.is_file()
     raw = (path if custom else STYLES / "default.md").read_text(encoding="utf-8")
@@ -62,7 +66,10 @@ def format_courses(rows: list[dict]) -> str:
 
 
 def load_background(slug: str) -> str:
-    """profiles/<slug>.md: researched facts about the professor's work (optional)."""
+    """Researched facts about the professor's work: DB profile first, then profiles/<slug>.md."""
+    prof = db.profile(slug)
+    if prof and prof["background"]:
+        return prof["background"].strip()
     path = PROFILES / f"{slug}.md"
     if path.is_file():
         return path.read_text(encoding="utf-8").strip()
@@ -71,11 +78,13 @@ def load_background(slug: str) -> str:
 
 def build_prompt(faculty: str, slug: str) -> str:
     template = (PROMPTS / "professor.md").read_text(encoding="utf-8")
+    classroom = "\n".join(f"- {rooms.describe(r)}" for r in rooms.for_professor(slug))
     return (
         template.replace("{{NAME}}", db.display_name(faculty))
         .replace("{{BIO}}", db.bio_for(faculty) or "(No bio in the catalog.)")
         .replace("{{COURSES}}", format_courses(db.courses_for(faculty)))
         .replace("{{BACKGROUND}}", load_background(slug))
+        .replace("{{CLASSROOM}}", classroom or "(You don't have a room in the virtual building yet.)")
         .replace("{{STYLE}}", load_style(slug).text)
     )
 

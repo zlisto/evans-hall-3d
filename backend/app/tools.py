@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from . import db
+from . import db, rooms
 
 
 def search_courses(query: str, limit: int = 10) -> list[dict] | str:
@@ -56,4 +56,17 @@ def courses_by_schedule(day: str = "", room: str = "", session: str = "") -> lis
     return rows or "No classes match that day/room/session."
 
 
-ALL_TOOLS = [search_courses, get_course, courses_by_professor, courses_by_schedule]
+def find_classroom(query: str = "") -> list[str] | str:
+    """Where a course or professor is in this Virtual Evans Hall (the 3D building the visitor is walking).
+
+    Use it for "where is Prof. Shin's room?" or "which room is MGT 403 in?". Empty query lists every room.
+
+    Args:
+        query: a professor name, course number, or course title (or empty for all rooms).
+    """
+    q = query.lower().strip()
+    hits = [a for a in rooms.assignments() if not q or q in f"{a['professor']} {a['course']} {a['title']}".lower()]
+    return [rooms.describe(a) for a in hits] or f"No virtual classroom matches '{query}'."
+
+
+ALL_TOOLS = [search_courses, get_course, courses_by_professor, courses_by_schedule, find_classroom]

@@ -6,13 +6,15 @@ import Minimap from './Minimap.jsx'
 import TouchControls from './TouchControls.jsx'
 import TalkAim from './TalkAim.jsx'
 import ChatPanel from './ChatPanel.jsx'
+import Schedule from './Schedule.jsx'
 import { TALKER_NAMES } from './Faculty.jsx'
 import { EYE, SPAWN } from './layout.js'
 
-export default function App() {
+export default function App({ onLogout }) {
   const [locked, setLocked] = useState(false)
   const [where, setWhere] = useState('')
   const [showMap, setShowMap] = useState(true)
+  const [showSchedule, setShowSchedule] = useState(false)
   const lockRef = useRef()
   const mapRef = useRef()
   const onLock = useCallback((v) => setLocked(v), [])
@@ -43,7 +45,11 @@ export default function App() {
     [],
   )
   useEffect(() => {
-    const k = (e) => e.code === 'KeyM' && !e.target.closest?.('input, textarea') && setShowMap((v) => !v)
+    const k = (e) => {
+      if (e.target.closest?.('input, textarea')) return
+      if (e.code === 'KeyM') setShowMap((v) => !v)
+      if (e.code === 'KeyT') setShowSchedule((v) => !v)
+    }
     window.addEventListener('keydown', k)
     return () => window.removeEventListener('keydown', k)
   }, [])
@@ -70,7 +76,7 @@ export default function App() {
           )}
         </div>
       )}
-      {chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} />}
+      {chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} onAuthLost={onLogout} />}
 
       <div className="where">
         <span className="dot" />
@@ -82,6 +88,10 @@ export default function App() {
       <button className="maptoggle" onClick={() => setShowMap((s) => !s)}>
         {showMap ? 'hide map' : 'map'}
       </button>
+      <button className="maptoggle schedtoggle" onClick={() => setShowSchedule((s) => !s)}>
+        {showSchedule ? 'hide schedule' : 'schedule'}
+      </button>
+      {showSchedule && !chat && <Schedule where={where} onClose={() => setShowSchedule(false)} />}
       {playing && !chat && <div className={aimAt ? 'crosshair on' : 'crosshair'} />}
       {touchOn && !chat && <TouchControls touchRef={touchRef} onPause={() => setTouch(false)} />}
 
@@ -116,9 +126,19 @@ export default function App() {
                 <span><b>Space</b> jump</span>
                 <span><b>C</b> crouch</span>
                 <span><b>M</b> map</span>
+                <span><b>T</b> schedule</span>
                 <span><b>Esc</b> pause</span>
               </div>
             )}
+            <button
+              className="logout"
+              onClick={(e) => {
+                e.stopPropagation()
+                onLogout()
+              }}
+            >
+              Log out
+            </button>
           </div>
         </div>
       )}

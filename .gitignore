@@ -16,3 +16,6 @@ data/private/
 # python
 .venv/
 __pycache__/
+
+# backend runtime state (logins, chat spend)
+backend/state.db

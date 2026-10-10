@@ -1,17 +1,24 @@
 import * as THREE from 'three'
 
-// Lecture slides drawn on canvas, one deck per course (Yale SOM Fall 2026 MBA courses).
+// Lecture slides drawn on canvas. A deck id (one per room) names the course code, title and
+// professor; its slide content comes from DECKS, keyed by course (two rooms can share a course).
 // kind: 'title' | 'chart' | 'content'
-export const COURSES = {
-  mgt409: { code: 'MGT 409', name: 'AI Foundations for Managers', prof: 'Tauhid Zaman' },
-  mgt404: { code: 'MGT 404', name: 'Basics of Economics', prof: 'Minerva McGonagall' },
-  mgt403: { code: 'MGT 403', name: 'Probability Modeling & Statistics', prof: 'Sybill Trelawney' },
-  mgt407: { code: 'MGT 407', name: 'Statistics', prof: 'Peter Schott' },
+import { ASSIGNMENTS } from './rooms.js'
+
+// rooms still taught by Hogwarts guest professors (fictional courses)
+const GUEST = {
+  mgt538: { code: 'MGT 538', name: 'Mastering Influence & Persuasion', prof: 'Albus Dumbledore' },
+  hog403: { code: 'HOG 403', name: 'Forecasting & Divination', prof: 'Sybill Trelawney', deck: 'mgt403' },
   mgt887: { code: 'MGT 887', name: 'Negotiations', prof: 'Horace Slughorn' },
-  mgt402: { code: 'MGT 402', name: 'Basics of Accounting', prof: 'Albus Dumbledore' },
-  mgt538: { code: 'MGT 538', name: 'Mastering Influence & Persuasion', prof: 'Gilderoy Lockhart' },
   mgt800: { code: 'MGT 800', name: 'Crisis Management in Tech', prof: 'Alastor Moody' },
   mgt541: { code: 'MGT 541', name: 'Corporate Finance', prof: 'Filius Flitwick' },
+  open: { code: 'Open room', name: 'Available classroom', prof: 'TBA' },
+}
+export const COURSES = {
+  ...GUEST,
+  ...Object.fromEntries(
+    ASSIGNMENTS.map((a) => [a.deck, { code: a.course, name: a.title, prof: a.professor, deck: a.course.toLowerCase().replace(' ', '') }]),
+  ),
 }
 export const COURSE_KEYS = Object.keys(COURSES)
 export const SLIDE_KINDS = ['title', 'chart', 'content']
@@ -42,6 +49,31 @@ const DECKS = {
     title: ['Regression, Explained', 'Signal, noise, and the line of best fit'],
     content: ['The CLT in four lines', ['x̄ ≈ Normal(μ, σ²/n) when n is big', 'SE = s / √n: more data, tighter guesses', '95% CI ≈ x̄ ± 2·SE', 'Long problems build strong stats muscles']],
     chart: 'normal',
+  },
+  mgt410: {
+    title: ['Know Your Competitor', 'Strategy is a game with other players'],
+    content: ['Reading the competitive field', ["Porter's five forces set industry profit", 'Best responses: what will they do next?', 'Commitment changes the game', 'Win where you have an edge, not everywhere']],
+    chart: 'payoff',
+  },
+  mgt411: {
+    title: ['Know Your Customer', 'Who buys, why, and what they will pay'],
+    content: ['From segment to sale', ['Segment → target → position', 'Willingness to pay drives pricing', 'Acquisition cost vs. lifetime value', 'Retention beats acquisition']],
+    chart: 'funnel',
+  },
+  mgt412: {
+    title: ['Think Like an Investor', 'Risk, return, and the cost of capital'],
+    content: ['Pricing risk', ['Expected return = r_f + β (market premium)', 'Diversify away idiosyncratic risk', 'Only systematic risk earns a premium', 'Value = cash flows discounted at the right rate']],
+    chart: 'dcf',
+  },
+  mgt413: {
+    title: ['State & Society', 'When markets need rules'],
+    content: ['Why governments step in', ['Externalities: costs others pay', 'Public goods get underprovided', 'Taxes and subsidies move the curves', 'Good policy weighs who wins and who loses']],
+    chart: 'supplydemand',
+  },
+  open: {
+    title: ['This Room Is Open', 'Pull up a chair'],
+    content: ['Coming soon', ['A professor will teach here soon', 'Meanwhile: try the spiral stairs', 'Say hi to Handsome Dan', 'Check the schedule (press T)']],
+    chart: 'models',
   },
   mgt887: {
     title: ['Negotiation as a Game', 'BATNA, ZOPA, and the Prisoner’s Dilemma'],
@@ -242,7 +274,7 @@ export function slideTex(course, kind) {
   c.width = W
   c.height = Hh
   const g = c.getContext('2d')
-  const deck = DECKS[course]
+  const deck = DECKS[COURSES[course].deck ?? course]
   if (kind === 'title') {
     const info = COURSES[course]
     g.fillStyle = BLUE

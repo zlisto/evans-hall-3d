@@ -96,7 +96,57 @@ const SPH = new THREE.SphereGeometry(1, 24, 16)
 const CYL = new THREE.CylinderGeometry(1, 1, 1, 14)
 const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.75, ...o })
 
-export default function HandsomeDan() {
+// one frame of the classroom tour: advance along the path, place and turn the dog. Returns true while walking.
+function walk(st, dt, root) {
+  let moving = true
+  if (st.pause > 0) {
+    st.pause -= dt
+    moving = false
+  } else {
+    let step = SPEED * dt
+    while (step > 0) {
+      const a = st.path[st.seg]
+      const b = st.path[st.seg + 1]
+      if (!b) {
+        // arrived: pause, then start the next leg of the 1000-room loop
+        st.leg = (st.leg + 1) % st.order.length
+        st.path = legPath(st.order[st.leg], st.order[(st.leg + 1) % st.order.length])
+        st.seg = 0
+        st.u = 0
+        st.pause = PAUSE
+        break
+      }
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1e-6
+      const left = (1 - st.u) * len
+      if (step < left) {
+        st.u += step / len
+        step = 0
+      } else {
+        step -= left
+        st.seg += 1
+        st.u = 0
+      }
+    }
+  }
+  const a = st.path[st.seg]
+  const b = st.path[st.seg + 1] || a
+  const x = a[0] + (b[0] - a[0]) * st.u
+  const z = a[1] + (b[1] - a[1]) * st.u
+  root.position.set(x, 0, z)
+  if (b !== a) {
+    const want = Math.atan2(b[0] - a[0], b[1] - a[1])
+    let d = want - root.rotation.y
+    d = Math.atan2(Math.sin(d), Math.cos(d))
+    root.rotation.y += d * Math.min(1, dt * 8)
+  }
+  DAN.x = x
+  DAN.z = z
+  if (import.meta.env.DEV) document.body.dataset.dan = `${x.toFixed(2)},${z.toFixed(2)},${st.order[st.leg]},${st.order[(st.leg + 1) % st.order.length]}`
+  return moving
+}
+
+// walking={false}: he stands still at the origin and just wags and looks around (home page)
+export default function HandsomeDan({ walking = true }) {
   const root = useRef()
   const legs = useRef([])
   const tail = useRef()
@@ -130,51 +180,7 @@ export default function HandsomeDan() {
 
   useFrame(({ clock }, rawDt) => {
     const dt = Math.min(rawDt, 0.05)
-    const st = state
-    let moving = true
-    if (st.pause > 0) {
-      st.pause -= dt
-      moving = false
-    } else {
-      let step = SPEED * dt
-      while (step > 0) {
-        const a = st.path[st.seg]
-        const b = st.path[st.seg + 1]
-        if (!b) {
-          // arrived: pause, then start the next leg of the 1000-room loop
-          st.leg = (st.leg + 1) % st.order.length
-          st.path = legPath(st.order[st.leg], st.order[(st.leg + 1) % st.order.length])
-          st.seg = 0
-          st.u = 0
-          st.pause = PAUSE
-          break
-        }
-        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1e-6
-        const left = (1 - st.u) * len
-        if (step < left) {
-          st.u += step / len
-          step = 0
-        } else {
-          step -= left
-          st.seg += 1
-          st.u = 0
-        }
-      }
-    }
-    const a = st.path[st.seg]
-    const b = st.path[st.seg + 1] || a
-    const x = a[0] + (b[0] - a[0]) * st.u
-    const z = a[1] + (b[1] - a[1]) * st.u
-    root.current.position.set(x, 0, z)
-    if (b !== a) {
-      const want = Math.atan2(b[0] - a[0], b[1] - a[1])
-      let d = want - root.current.rotation.y
-      d = Math.atan2(Math.sin(d), Math.cos(d))
-      root.current.rotation.y += d * Math.min(1, dt * 8)
-    }
-    DAN.x = x
-    DAN.z = z
-    if (import.meta.env.DEV) document.body.dataset.dan = `${x.toFixed(2)},${z.toFixed(2)},${st.order[st.leg]},${st.order[(st.leg + 1) % st.order.length]}`
+    const moving = walking && walk(state, dt, root.current)
     const t = clock.elapsedTime
     legs.current.forEach((l, i) => {
       if (l) l.rotation.x = moving ? Math.sin(t * 12 + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI : 0)) * 0.5 : 0
@@ -214,7 +220,7 @@ export default function HandsomeDan() {
         {/* big bulldog head */}
         <group ref={head} position={[0, 0.6, 0.36]}>
           <B p={[0, 0, 0]} s={[0.2, 0.17, 0.16]} m={M.white} />
-          <B p={[0.08, 0.05, 0.06]} s={[0.09, 0.09, 0.1]} m={M.brown} />
+          <B p={[0.1, 0.1, 0.02]} s={[0.09, 0.08, 0.1]} m={M.brown} /> {/* patch above his eye, so both eyes show */}
           {[-1, 1].map((sx) => (
             <group key={sx}>
               <B p={[0.16 * sx, 0.11, -0.02]} r={[0, 0, 0.6 * sx]} s={[0.07, 0.04, 0.05]} m={M.dark} />

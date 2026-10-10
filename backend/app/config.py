@@ -12,13 +12,14 @@ os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")  # quiet startup
 BACKEND = Path(__file__).resolve().parent.parent
 REPO = BACKEND.parent
 
-# .env can sit in backend/ or any folder above it (e.g. the class-folder root). Closest wins.
+# .env files in backend/ and every folder above it all load; closest wins (dotenv never overrides a
+# value that's already set, including real environment variables like Render's).
 for folder in [BACKEND, *BACKEND.parents]:
     if (folder / ".env").is_file():
         load_dotenv(folder / ".env")
-        break
 
-DB_PATH = Path(os.getenv("SOM_DB_PATH") or REPO / "data" / "yale_som.db")
+DB_PATH = Path(os.getenv("SOM_DB_PATH") or REPO / "data" / "yale_som.db")  # catalog + profiles (in the repo)
+STATE_DB_PATH = Path(os.getenv("STATE_DB_PATH") or BACKEND / "state.db")  # logins + spend (local only, gitignored)
 PROMPTS = BACKEND / "app" / "prompts"
 STYLES = BACKEND / "app" / "styles"
 PROFILES = BACKEND / "app" / "profiles"  # researched background per professor (optional)

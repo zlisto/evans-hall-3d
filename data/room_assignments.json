@@ -1,0 +1,313 @@
+{
+  "about": "Virtual Evans Hall room for each course (one room per course + professor). Catalog room when free; otherwise an empty 4th-floor drum. Generated from data/yale_som.db.",
+  "rooms": [
+    {
+      "room": "2200",
+      "floor": 2,
+      "course": "MGT 409",
+      "title": "AI Foundations for Managers",
+      "professor": "Tauhid Zaman",
+      "slug": "tauhid-zaman",
+      "category": "Core",
+      "session": "fall-1",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "03",
+          "time": "T Th 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "04",
+          "time": "T Th 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "05",
+          "time": "T Th 2:35 PM-3:55 PM"
+        },
+        {
+          "section": "E1",
+          "time": "TBA"
+        }
+      ],
+      "catalog_room": "Evans 2200",
+      "deck": "mgt409-zaman"
+    },
+    {
+      "room": "2210",
+      "floor": 2,
+      "course": "MGT 407",
+      "title": "Statistics",
+      "professor": "Peter Schott",
+      "slug": "peter-schott",
+      "category": "EMBA",
+      "session": "fall",
+      "sections": [
+        {
+          "section": "E1",
+          "time": "TBA"
+        }
+      ],
+      "catalog_room": null,
+      "deck": "mgt407-schott"
+    },
+    {
+      "room": "2410",
+      "floor": 2,
+      "course": "MGT 410",
+      "title": "Competitor",
+      "professor": "Kai Hao Yang",
+      "slug": "kai-hao-yang",
+      "category": "Core",
+      "session": "fall-2",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 8:30 AM-9:50 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "03",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "04",
+          "time": "M W 2:35 PM-3:55 PM"
+        },
+        {
+          "section": "05",
+          "time": "M W 4:10 PM-5:30 PM"
+        }
+      ],
+      "catalog_room": "Evans 2410",
+      "deck": "mgt410-yang"
+    },
+    {
+      "room": "4200",
+      "floor": 4,
+      "course": "MGT 402",
+      "title": "Basics of Accounting",
+      "professor": "Anya Nakhmurina",
+      "slug": "anya-nakhmurina",
+      "category": "Core",
+      "session": "fall-1",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "03",
+          "time": "M W 2:35 PM-3:55 PM"
+        },
+        {
+          "section": "04",
+          "time": "T Th 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "05",
+          "time": "T Th 1:00 PM-2:20 PM"
+        }
+      ],
+      "catalog_room": "Evans 4200",
+      "deck": "mgt402-nakhmurina"
+    },
+    {
+      "room": "4410",
+      "floor": 4,
+      "course": "MGT 404",
+      "title": "Basics of Economics",
+      "professor": "Kai Hao Yang",
+      "slug": "kai-hao-yang",
+      "category": "Core",
+      "session": "fall-1",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 8:30 AM-9:50 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "03",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "04",
+          "time": "M W 2:35 PM-3:55 PM"
+        },
+        {
+          "section": "05",
+          "time": "M W 4:10 PM-5:30 PM"
+        }
+      ],
+      "catalog_room": "Evans 4410",
+      "deck": "mgt404-yang"
+    },
+    {
+      "room": "4420",
+      "floor": 4,
+      "course": "MGT 403",
+      "title": "Probability Modeling & Statistics",
+      "professor": "Seth Zimmerman",
+      "slug": "seth-zimmerman",
+      "category": "Core",
+      "session": "fall-1",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "03",
+          "time": "M W 2:35 PM-3:55 PM"
+        }
+      ],
+      "catalog_room": "Evans 4420",
+      "deck": "mgt403-zimmerman"
+    },
+    {
+      "room": "4430",
+      "floor": 4,
+      "course": "MGT 403",
+      "title": "Probability Modeling & Statistics",
+      "professor": "Katja Seim",
+      "slug": "katja-seim",
+      "category": "Core",
+      "session": "fall-1",
+      "sections": [
+        {
+          "section": "04",
+          "time": "T Th 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "05",
+          "time": "T Th 1:00 PM-2:20 PM"
+        }
+      ],
+      "catalog_room": "Evans 4420",
+      "deck": "mgt403-seim"
+    },
+    {
+      "room": "4400",
+      "floor": 4,
+      "course": "MGT 412",
+      "title": "Investor",
+      "professor": "Stefano Giglio",
+      "slug": "stefano-giglio",
+      "category": "Core",
+      "session": "fall-2",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "03",
+          "time": "T Th 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "04",
+          "time": "T Th 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "05",
+          "time": "T Th 2:35 PM-3:55 PM"
+        }
+      ],
+      "catalog_room": "Evans 2200",
+      "deck": "mgt412-giglio"
+    },
+    {
+      "room": "4210",
+      "floor": 4,
+      "course": "MGT 411",
+      "title": "Customer",
+      "professor": "Jiwoong Shin",
+      "slug": "jiwoong-shin",
+      "category": "Core",
+      "session": "fall-2",
+      "sections": [
+        {
+          "section": "01",
+          "time": "M W 8:30 AM-9:50 AM"
+        },
+        {
+          "section": "02",
+          "time": "M W 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "03",
+          "time": "M W 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "04",
+          "time": "T Th 8:30 AM-9:50 AM"
+        },
+        {
+          "section": "05",
+          "time": "T Th 10:05 AM-11:25 AM"
+        }
+      ],
+      "catalog_room": "Evans 4200",
+      "deck": "mgt411-shin"
+    },
+    {
+      "room": "4220",
+      "floor": 4,
+      "course": "MGT 413",
+      "title": "State & Society",
+      "professor": "Mushfiq Mobarak",
+      "slug": "mushfiq-mobarak",
+      "category": "Core",
+      "session": "fall-2",
+      "sections": [
+        {
+          "section": "01",
+          "time": "T Th 8:30 AM-9:50 AM"
+        },
+        {
+          "section": "02",
+          "time": "T Th 10:05 AM-11:25 AM"
+        },
+        {
+          "section": "03",
+          "time": "T Th 1:00 PM-2:20 PM"
+        },
+        {
+          "section": "04",
+          "time": "T Th 2:35 PM-3:55 PM"
+        },
+        {
+          "section": "05",
+          "time": "T Th 4:10 PM-5:30 PM"
+        }
+      ],
+      "catalog_room": "Evans 2410",
+      "deck": "mgt413-mobarak"
+    }
+  ]
+}

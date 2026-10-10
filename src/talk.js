@@ -6,11 +6,39 @@ export const REACH = 7 // meters: how close you need to be to start a chat
 
 const API = import.meta.env.VITE_API_URL ?? '' // dev: Vite proxies /api to the FastAPI backend
 
+// login token, remembered in this browser (storage can be blocked, e.g. private windows)
+const TOKEN_KEY = 'som-token'
+let memoryToken = null
+export const auth = {
+  get: () => {
+    try {
+      return localStorage.getItem(TOKEN_KEY) ?? memoryToken
+    } catch {
+      return memoryToken
+    }
+  },
+  set: (token) => {
+    memoryToken = token
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token)
+      else localStorage.removeItem(TOKEN_KEY)
+    } catch {
+      /* memory only */
+    }
+  },
+}
+
 export async function api(path, body) {
-  const res = await fetch(`${API}/api${path}`, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined)
+  const headers = {}
+  const token = auth.get()
+  if (token) headers.Authorization = `Bearer ${token}`
+  if (body) headers['Content-Type'] = 'application/json'
+  const res = await fetch(`${API}/api${path}`, body ? { method: 'POST', headers, body: JSON.stringify(body) } : { headers })
   if (!res.ok) {
     const detail = await res.json().then((d) => d.detail).catch(() => null)
-    throw new Error(detail || `HTTP ${res.status}`)
+    const err = new Error(typeof detail === 'string' ? detail : `HTTP ${res.status}`)
+    err.status = res.status
+    throw err
   }
   return res.json()
 }

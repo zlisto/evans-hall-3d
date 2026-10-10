@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
-import { EYE, MAX_STEP, SPAWN, collide, floorAt, locate } from './layout.js'
+import { EYE, MAX_STEP, SPAWN } from './layout.js'
+import { collide, floorAt, levelOf, locate } from './levels.js'
 
 const CROUCH_EYE = 1.05
 const JUMP_SPEED = 4.2
@@ -57,15 +58,16 @@ export default function Player({ lockRef, mapRef, touchRef, onLock, onWhere }) {
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05)
-    // dev only: teleport for screenshots by setting <body data-go="[x, z, yawDeg]">
+    // dev only: teleport for screenshots by setting <body data-go="[x, z, yawDeg, pitch, camY, floorY]">
     if (import.meta.env.DEV && document.body.dataset.go) {
-      const [x, z, yaw, pitch = 0, y = null] = JSON.parse(document.body.dataset.go)
+      const [x, z, yaw, pitch = 0, y = null, feetY = 0] = JSON.parse(document.body.dataset.go)
       devY.current = y
       delete document.body.dataset.go
       camera.position.set(x, EYE, z)
       camera.rotation.set(pitch, (yaw * Math.PI) / 180, 0, 'YXZ')
-      floorY.current = floorAt(x, z)
+      floorY.current = floorAt(x, z, feetY)
     }
+    const feet = floorY.current // which floor / which turn of the spiral stair you're on
     const touch = touchRef.current
     const active = controls.isLocked || touch.active
 
@@ -108,15 +110,15 @@ export default function Player({ lockRef, mapRef, touchRef, onLock, onWhere }) {
       const crouching = active && k.KeyC
       const speed = crouching ? 2.4 : sprint ? 9.5 : 5.5 // m/s; brisk walk, sprint is a jog
       const pos = { x: camera.position.x + mx * speed * dt, z: camera.position.z + mz * speed * dt }
-      collide(pos)
+      collide(pos, feet)
       // risers: walk up one step at a time; anything taller acts like a wall
-      const cur = floorAt(camera.position.x, camera.position.z)
-      if (floorAt(pos.x, pos.z) - cur <= MAX_STEP) {
+      const cur = floorAt(camera.position.x, camera.position.z, feet)
+      if (floorAt(pos.x, pos.z, feet) - cur <= MAX_STEP) {
         camera.position.x = pos.x
         camera.position.z = pos.z
-      } else if (floorAt(pos.x, camera.position.z) - cur <= MAX_STEP) {
+      } else if (floorAt(pos.x, camera.position.z, feet) - cur <= MAX_STEP) {
         camera.position.x = pos.x // slide along the edge
-      } else if (floorAt(camera.position.x, pos.z) - cur <= MAX_STEP) {
+      } else if (floorAt(camera.position.x, pos.z, feet) - cur <= MAX_STEP) {
         camera.position.z = pos.z
       }
     }
@@ -130,13 +132,13 @@ export default function Player({ lockRef, mapRef, touchRef, onLock, onWhere }) {
     if (jumpY.current === 0) vy.current = 0
     const eyeTarget = active && k.KeyC ? CROUCH_EYE : EYE
     eye.current += (eyeTarget - eye.current) * Math.min(1, dt * 12)
-    const fy = floorAt(camera.position.x, camera.position.z)
+    const fy = floorAt(camera.position.x, camera.position.z, feet)
     floorY.current += (fy - floorY.current) * Math.min(1, dt * 14) // smooth step up/down
     camera.position.y = devY.current ?? floorY.current + eye.current + jumpY.current
 
     if (import.meta.env.DEV) document.body.dataset.pos = `${camera.position.x.toFixed(2)},${camera.position.z.toFixed(2)},${fwd.x.toFixed(2)},${fwd.z.toFixed(2)}|${touch.move.map((v) => v.toFixed(2))}`
-    mapRef.current?.(camera.position.x, camera.position.z, fwd.x, fwd.z)
-    const w = locate(camera.position.x, camera.position.z)
+    mapRef.current?.(camera.position.x, camera.position.z, fwd.x, fwd.z, levelOf(floorY.current))
+    const w = locate(camera.position.x, camera.position.z, floorY.current)
     if (w !== where.current) {
       where.current = w
       onWhere(w)

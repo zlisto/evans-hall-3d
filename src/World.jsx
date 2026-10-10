@@ -4,8 +4,11 @@ import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import {
   H, EAST, BOUNDS, COURTYARD, DRUMS, DRUM_WALL, WALLS, CHAIRS, SCREENS, BOARDS, LECTERNS,
-  STAIRS, MEETING, MEET_DOOR, BEIN, BEIN_TABLES, PLANTS, LIBRARY, RISE, inPoly, ellPt, tierOutline,
+  STAIRS, MEETING, MEET_DOOR, BEIN, BEIN_TABLES, PLANTS, LIBRARY, RISE, TOWER_R, inPoly, ellPt, tierOutline,
 } from './layout.js'
+import { ELEV4 } from './floor4.js'
+import Floor4 from './Floor4.jsx'
+import SpiralTowers from './SpiralTowers.jsx'
 import * as T from './textures.js'
 import LabubuParty, { MeetingLabubus } from './LabubuParty.jsx'
 import LabubuCrowd from './LabubuCrowd.jsx'
@@ -17,9 +20,10 @@ import { rng } from './textures.js'
 const TAU = Math.PI * 2
 
 // ---------- helpers
-function Instanced({ items, material, geometry }) {
+export function Instanced({ items, material, geometry }) {
   const ref = useRef()
   useLayoutEffect(() => {
+    if (!ref.current) return // nothing rendered for an empty list
     const m = new THREE.Matrix4()
     const q = new THREE.Quaternion()
     const e = new THREE.Euler()
@@ -39,16 +43,16 @@ function Instanced({ items, material, geometry }) {
   return <instancedMesh ref={ref} args={[geometry, material, items.length]} frustumCulled={false} />
 }
 
-const BOX = new THREE.BoxGeometry(1, 1, 1)
+export const BOX = new THREE.BoxGeometry(1, 1, 1)
 const slideMats = new Map()
-const slideMat = (course, kind) => {
+export const slideMat = (course, kind) => {
   const k = `${course}-${kind}`
   if (!slideMats.has(k)) slideMats.set(k, new THREE.MeshBasicMaterial({ map: slideTex(course, kind), toneMapped: false }))
   return slideMats.get(k)
 }
 
-function wallItems(mat) {
-  return WALLS.filter((w) => w.mat === mat).map((w) => {
+function wallItems(mat, list) {
+  return list.filter((w) => w.mat === mat).map((w) => {
     const dx = w.b[0] - w.a[0]
     const dz = w.b[1] - w.a[1]
     return {
@@ -60,7 +64,7 @@ function wallItems(mat) {
 }
 
 // vertical strip along a closed polyline
-function ribbon(points, y0, y1, uPerMeter = 0.25) {
+export function ribbon(points, y0, y1, uPerMeter = 0.25) {
   const pts = [...points, points[0]]
   const pos = []
   const uv = []
@@ -83,12 +87,12 @@ function ribbon(points, y0, y1, uPerMeter = 0.25) {
   return g
 }
 
-function Arc({ c, rx, rz = rx, a0, a1, y0 = 0, h = H, material }) {
+export function Arc({ c, rx, rz = rx, a0, a1, y0 = 0, h = H, material }) {
   const geo = useMemo(() => new THREE.CylinderGeometry(1, 1, h, 72, 1, true, a0, a1 - a0), [h, a0, a1])
   return <mesh geometry={geo} material={material} position={[c[0], y0 + h / 2, c[1]]} scale={[rx, 1, rz]} />
 }
 
-function Plane({ p, rot = 0, w, h, material }) {
+export function Plane({ p, rot = 0, w, h, material }) {
   return (
     <mesh position={p} rotation={[0, rot, 0]} material={material}>
       <planeGeometry args={[w, h]} />
@@ -97,7 +101,7 @@ function Plane({ p, rot = 0, w, h, material }) {
 }
 
 // ---------- materials
-function useMaterials() {
+export function useMaterials() {
   return useMemo(() => {
     const std = (o) => new THREE.MeshStandardMaterial(o)
     const glass = (color, opacity) =>
@@ -108,6 +112,11 @@ function useMaterials() {
       exterior: glass('#2a3a55', 0.35),
       glass: glass('#d7ecf2', 0.14),
       libGlass: glass('#d7ecf2', 0.12),
+      readGlass: glass('#d7ecf2', 0.12),
+      band: std({ map: T.windowsTex(false), roughness: 0.6 }),
+      woodDoor: std({ map: T.teakTex(), roughness: 0.5 }),
+      granite: std({ map: T.stoneTex([1, 1]), color: '#b9b6ae', roughness: 0.7 }),
+      tableWhite: std({ color: '#ecebe7', roughness: 0.4 }),
       beinGlass: glass('#d7ecf2', 0.12),
       meetGlass: glass('#c9d6e6', 0.22),
       rail: glass('#9fb3c8', 0.3),
@@ -179,10 +188,11 @@ function Atmosphere() {
 function FloorAndCeiling({ M }) {
   const [floor, ceil, lawn] = useMemo(() => {
     const { xMin, xMax, zMin, zMax } = BOUNDS
-    const make = (flip) => {
+    const make = (flip, towerHoles = false) => {
       const f = (x, z) => new THREE.Vector2(x, flip ? -z : z)
       const s = new THREE.Shape([f(xMin, zMin), f(xMax, zMin), f(xMax, zMax), f(xMin, zMax)])
       s.holes.push(new THREE.Path(COURTYARD.map(([x, z]) => f(x, z))))
+      if (towerHoles) for (const t of STAIRS.filter((st) => st.spiral)) s.holes.push(new THREE.Path().absarc(t.c[0], flip ? -t.c[1] : t.c[1], TOWER_R, 0, TAU, true))
       const g = new THREE.ShapeGeometry(s)
       g.rotateX(flip ? -Math.PI / 2 : Math.PI / 2)
       return g
@@ -190,7 +200,7 @@ function FloorAndCeiling({ M }) {
     const lawnShape = new THREE.Shape(COURTYARD.map(([x, z]) => new THREE.Vector2(x, -z)))
     const lg = new THREE.ShapeGeometry(lawnShape)
     lg.rotateX(-Math.PI / 2)
-    return [make(true), make(false), lg]
+    return [make(true), make(false, true), lg]
   }, [])
   return (
     <>
@@ -207,7 +217,7 @@ function FloorAndCeiling({ M }) {
 function Courtyard({ M }) {
   const glass = useMemo(() => ribbon(COURTYARD, 0, H), [])
   const cafe = useMemo(() => ribbon(COURTYARD, -5, 0), [])
-  const upper = useMemo(() => ribbon(COURTYARD, H, H + 9, 0.12), [])
+  const upper = useMemo(() => ribbon(COURTYARD, H, ELEV4, 0.12), []) // floor 3 (not walkable)
   const mullions = useMemo(
     () => COURTYARD.filter((_, i) => i % 6 === 0).map(([x, z]) => ({ p: [x, H / 2, z], s: [0.07, H, 0.07] })),
     [],
@@ -269,14 +279,14 @@ function OutsideTrees({ M }) {
 }
 
 // ---------- walls (instanced by material)
-const WALL_MATS = ['white', 'sage', 'exterior', 'libGlass', 'beinGlass', 'meetGlass', 'slats', 'desk', 'shelf', 'leather', 'orange']
-function Walls({ M }) {
-  const groups = useMemo(() => WALL_MATS.map((m) => [m, wallItems(m)]), [])
+const WALL_MATS = ['white', 'sage', 'exterior', 'libGlass', 'readGlass', 'band', 'beinGlass', 'meetGlass', 'slats', 'desk', 'shelf', 'leather', 'orange']
+export function Walls({ M, list = WALLS }) {
+  const groups = useMemo(() => WALL_MATS.map((m) => [m, wallItems(m, list)]), [list])
   return groups.map(([m, items]) => <Instanced key={m} items={items} material={M[m]} geometry={BOX} />)
 }
 
 // ---------- stadium-seating risers: stacked slabs, carpet on top, orange step edges
-function Tiers({ M }) {
+export function Tiers({ M }) {
   const geos = useMemo(() => {
     const out = []
     for (const d of DRUMS)
@@ -295,14 +305,14 @@ function Tiers({ M }) {
 }
 
 // ---------- classroom drums
-function Drums({ M }) {
-  const signs = useMemo(() => DRUMS.map((d) => new THREE.MeshBasicMaterial({ map: T.signTex(d.name, d.id) })), [])
+export function Drums({ M, drums = DRUMS }) {
+  const signs = useMemo(() => drums.map((d) => new THREE.MeshBasicMaterial({ map: T.signTex(d.name, d.id) })), [drums])
   const disc = useMemo(() => {
     const g = new THREE.CircleGeometry(1, 48)
     g.rotateX(-Math.PI / 2)
     return g
   }, [])
-  return DRUMS.map((d, i) => {
+  return drums.map((d, i) => {
     const { c, rx, rz, gap, doors, arcs } = d
     const sp = ellPt(c, rx + 0.03, rz + 0.03, doors[0] + gap + 0.16)
     const n = [sp[0] - c[0], sp[1] - c[1]]
@@ -335,20 +345,21 @@ function Drums({ M }) {
   })
 }
 
-function ClassroomStuff({ M }) {
-  const seats = useMemo(() => CHAIRS.map((c) => ({ p: [c.x, (c.y || 0) + 0.47, c.z], r: c.rot, s: [0.5, 0.08, 0.5] })), [])
+// chairs, slide screens, whiteboards, lecterns. Floor 4 passes its own chairs and a course remap.
+export function ClassroomStuff({ M, chairs = CHAIRS, courseOf = (c) => c }) {
+  const seats = useMemo(() => chairs.map((c) => ({ p: [c.x, (c.y || 0) + 0.47, c.z], r: c.rot, s: [0.5, 0.08, 0.5] })), [chairs])
   const backs = useMemo(
-    () => CHAIRS.map((c) => ({ p: [c.x + Math.sin(c.rot) * 0.22, (c.y || 0) + 0.8, c.z + Math.cos(c.rot) * 0.22], r: c.rot, s: [0.5, 0.6, 0.06] })),
-    [],
+    () => chairs.map((c) => ({ p: [c.x + Math.sin(c.rot) * 0.22, (c.y || 0) + 0.8, c.z + Math.cos(c.rot) * 0.22], r: c.rot, s: [0.5, 0.6, 0.06] })),
+    [chairs],
   )
-  const legs = useMemo(() => CHAIRS.map((c) => ({ p: [c.x, (c.y || 0) + 0.22, c.z], s: [0.06, 0.44, 0.06] })), [])
+  const legs = useMemo(() => chairs.map((c) => ({ p: [c.x, (c.y || 0) + 0.22, c.z], s: [0.06, 0.44, 0.06] })), [chairs])
   return (
     <>
       <Instanced items={seats} material={M.chair} geometry={BOX} />
       <Instanced items={backs} material={M.chair} geometry={BOX} />
       <Instanced items={legs} material={M.mullion} geometry={BOX} />
       {SCREENS.map((s, i) => (
-        <Plane key={i} p={[s.x, 2.95, s.z]} rot={s.rot} w={2.1} h={1.18} material={slideMat(s.course, s.kind)} />
+        <Plane key={i} p={[s.x, 2.95, s.z]} rot={s.rot} w={2.1} h={1.18} material={slideMat(courseOf(s.course), s.kind)} />
       ))}
       {BOARDS.map((b, i) => (
         <mesh key={i} position={[b.x, 1.45, b.z]} rotation={[0, b.rot, 0]} material={M.board}>
@@ -412,9 +423,10 @@ function Beinecke({ M }) {
 }
 
 // ---------- stairwells with paintings above
-function Stairs({ M }) {
+const BOX_STAIRS = STAIRS.filter((s) => !s.spiral) // A and B are the spiral towers
+export function Stairs({ M }) {
   const mats = useMemo(() => {
-    return STAIRS.map((s) => {
+    return BOX_STAIRS.map((s) => {
       if (s.photo) {
         const t = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}art/stair-g.jpg`)
         t.colorSpace = THREE.SRGBColorSpace
@@ -425,7 +437,7 @@ function Stairs({ M }) {
       return new THREE.MeshBasicMaterial({ map: T.paintingTex(s.seed) })
     })
   }, [])
-  return STAIRS.map((s, i) => {
+  return BOX_STAIRS.map((s, i) => {
     const ext = s.face[0] !== 0 ? s.w / 2 : s.d / 2
     const off = ext + 0.12
     const p = [s.c[0] + s.face[0] * off, s.c[1] + s.face[1] * off]
@@ -517,8 +529,9 @@ function Details({ M }) {
   const lights = useMemo(() => {
     const out = []
     const { xMin, xMax, zMin, zMax } = BOUNDS
+    const inTower = (x, z) => STAIRS.some((t) => t.spiral && Math.hypot(x - t.c[0], z - t.c[1]) < TOWER_R + 0.3)
     for (let x = xMin + 1.2; x < xMax; x += 2.4)
-      for (let z = zMin + 1.2; z < zMax; z += 2.4) if (!inPoly(x, z, COURTYARD)) out.push({ p: [x, H - 0.01, z] })
+      for (let z = zMin + 1.2; z < zMax; z += 2.4) if (!inPoly(x, z, COURTYARD) && !inTower(x, z)) out.push({ p: [x, H - 0.01, z] })
     for (let x = EAST + 1; x < EAST + 9.5; x += 2.4)
       for (let z = -9; z < 9.5; z += 2.4) if (Math.hypot(x - EAST, z) < 9.3) out.push({ p: [x, H - 0.01, z] })
     return out
@@ -556,6 +569,8 @@ export default function World({ talkingTo, onTalk }) {
       <LabubuCrowd />
       <Faculty talkingTo={talkingTo} onTalk={onTalk} />
       <HandsomeDan />
+      <SpiralTowers M={M} />
+      <Floor4 M={M} />
     </>
   )
 }

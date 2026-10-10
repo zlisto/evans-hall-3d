@@ -1,4 +1,5 @@
 // Evans Hall, floor 2. Units are meters.
+import { ROOM_ASSIGN } from './rooms.js'
 // World axes: +x = east, -z = north (three.js camera looks -z by default = north).
 // Read from reference/floorplan (plan is drawn with west at the top).
 
@@ -66,16 +67,19 @@ const AISLE_HALF = 0.8
 const TIER_SPAN = 1.42 // radians each side of the center aisle covered by risers
 const bandStart = (i) => ROW0 - 0.35 + i * ROW_STEP
 const SLIDE_ORDER = ['title', 'chart', 'content']
+// `course` is the slide deck for rooms taught by Hogwarts guests; rooms in data/room_assignments.json
+// use that room's real course instead (see rooms.js)
 export const DRUMS = [
-  { id: '2400', course: 'mgt402', name: 'MBA Class of 1980 Classroom', c: [-31, 28.4], rx: 8, rz: 8, front: [1, -1] },
-  { id: '2410', course: 'mgt404', name: 'Bewkes Classroom', c: [-14.5, 31.4], rx: 6, rz: 6.5, front: [0, -1] },
-  { id: '2420', course: 'mgt403', name: 'Betts Classroom', c: [0, 31.4], rx: 6, rz: 6.5, front: [0, -1] },
+  { id: '2400', course: 'mgt538', name: 'MBA Class of 1980 Classroom', c: [-31, 28.4], rx: 8, rz: 8, front: [1, -1] },
+  { id: '2410', course: 'open', name: 'Bewkes Classroom', c: [-14.5, 31.4], rx: 6, rz: 6.5, front: [0, -1] },
+  { id: '2420', course: 'hog403', name: 'Betts Classroom', c: [0, 31.4], rx: 6, rz: 6.5, front: [0, -1] },
   { id: '2430', course: 'mgt887', name: 'Baker Classroom', c: [14.5, 31.4], rx: 6, rz: 6.5, front: [0, -1] },
-  { id: '2200', course: 'mgt409', name: 'Blumetti Classroom', c: [-31, -28.4], rx: 7.5, rz: 7.5, front: [1, 1] },
-  { id: '2210', course: 'mgt407', name: 'Allison Foundation Classroom', c: [-14.5, -31.4], rx: 6, rz: 6.5, front: [0, 1] },
+  { id: '2200', course: 'open', name: 'Blumetti Classroom', c: [-31, -28.4], rx: 7.5, rz: 7.5, front: [1, 1] },
+  { id: '2210', course: 'open', name: 'Allison Foundation Classroom', c: [-14.5, -31.4], rx: 6, rz: 6.5, front: [0, 1] },
   { id: '2220', course: 'mgt800', name: 'Jones Classroom', c: [0, -31.4], rx: 6, rz: 6.5, front: [0, 1] },
   { id: '2230', course: 'mgt541', name: 'Nooyi Classroom', c: [14.5, -31.4], rx: 6, rz: 6.5, front: [0, 1] },
 ].map((d) => {
+  d.course = ROOM_ASSIGN[d.id]?.deck ?? d.course
   const dir = norm(d.front)
   const phi = Math.atan2(dir[0], dir[1])
   const a = Math.acos(DOOR_DEPTH)
@@ -92,9 +96,12 @@ export const DRUMS = [
 export const BEIN = { c: [EAST, 0], r: 10, terrace: 14, doorGap: 0.13, muralR: 3.6, muralHalf: 0.85 }
 
 // ---------- stairs (painting above each opening)
+// A and B are wide open spiral stairs against the west glass: each goes from floor 2 straight up to
+// floor 4 in two full turns (see levels.js), ~3.6 m treads. The rest are solid cores with a painted opening.
+export const TOWER_R = 4.3
 export const STAIRS = [
-  { id: 'A', c: [-34.75, 15.5], w: 5, d: 3, face: [1, 0], seed: 1 },
-  { id: 'B', c: [-34.75, -15.5], w: 5, d: 3, face: [1, 0], seed: 2 },
+  { id: 'A', c: [-40.75 + TOWER_R, 16.8], spiral: true },
+  { id: 'B', c: [-40.75 + TOWER_R, -16.8], spiral: true },
   { id: 'G', c: [24.6, 25], w: 3, d: 4, face: [0, -1], photo: true },
   { id: 'D', c: [24.6, -25], w: 3, d: 4, face: [0, 1], seed: 3 },
   { id: 'C', c: [24.6, -45], w: 3, d: 4, face: [0, 1], seed: 4 },
@@ -106,9 +113,12 @@ export const STAIRS = [
 export const LIBRARY = { x0: -40.75, x1: -28.75, z0: -12, z1: 12, door: 1.2 }
 
 // ---------- walls: every straight piece is a box; mat 'none' = invisible collider
+// `part` says which section a wall belongs to, so floor 4 (same drums + stair cores) can reuse
+// only those pieces: 'courtyard', 'drums', 'stairs' repeat upstairs; everything else is floor 2 only.
 export const WALLS = []
+let part = 'shell'
 const W = (a, b, mat, o = {}) =>
-  WALLS.push({ a, b, mat, h: o.h ?? H, y0: o.y0 ?? 0, t: o.t ?? 0.2, collide: o.collide ?? true })
+  WALLS.push({ a, b, mat, part, h: o.h ?? H, y0: o.y0 ?? 0, t: o.t ?? 0.2, collide: o.collide ?? true })
 const P = (pts, mat, o = {}) => {
   for (let i = 0; i < pts.length - 1; i++) W(pts[i], pts[i + 1], mat, o)
 }
@@ -125,6 +135,7 @@ W([EAST, -10], [EAST, -1.3], 'beinGlass', { t: 0.1 })
 W([EAST, 1.3], [EAST, 10], 'beinGlass', { t: 0.1 })
 
 // courtyard glass (rendered as a smooth ribbon, collider here)
+part = 'courtyard'
 P([...COURTYARD, COURTYARD[0]], 'none', { t: 0.15 })
 
 // drums: outer + inner walls with two door gaps, wood-slat door alcove fins
@@ -132,6 +143,7 @@ export const CHAIRS = []
 export const SCREENS = []
 export const BOARDS = []
 export const LECTERNS = []
+part = 'drums'
 for (const d of DRUMS) {
   const { c, rx, rz, gap, dir, doors, arcs } = d
   for (const [a0, a1] of arcs) {
@@ -193,6 +205,7 @@ for (const d of DRUMS) {
 }
 
 // library
+part = 'library'
 {
   const { x0, x1, z0, z1, door } = LIBRARY
   W([x1, z0], [x1, -door], 'libGlass', { t: 0.1 })
@@ -209,8 +222,9 @@ for (const d of DRUMS) {
   for (const z of [-8, -4, 4, 8]) for (const s of [-1, 1]) CHAIRS.push({ x: tx + s * 0.75, z, rot: s > 0 ? -Math.PI / 2 : Math.PI / 2 })
 }
 
-// stairs: solid white cores
-for (const s of STAIRS) {
+// stairs: solid white cores (the spiral towers collide in levels.js)
+part = 'stairs'
+for (const s of STAIRS.filter((st) => !st.spiral)) {
   const [cx, cz] = s.c
   const hw = s.w / 2
   const hd = s.d / 2
@@ -220,6 +234,7 @@ for (const s of STAIRS) {
 
 // small glass meeting rooms in strips behind each drum row
 export const MEETING = []
+part = 'meeting'
 const M_X0 = -35
 const M_X1 = 22.6
 export const MEET_DOOR = 1.1 // glass door width
@@ -257,6 +272,7 @@ for (const side of [1, -1]) {
 }
 
 // Beinecke: curved glass, terrace railing, mural wall, tables
+part = 'beinecke'
 {
   const { c, r, terrace, doorGap, muralR, muralHalf } = BEIN
   P(arc(c, r, r, 0, Math.PI / 2 - doorGap, 30), 'none', { t: 0.12 })
@@ -275,6 +291,7 @@ for (const p of BEIN_TABLES) {
 }
 
 // cloister furniture: cognac benches, orange sofas, plants
+part = 'furniture'
 const CW = CLOISTER_W
 export const PLANTS = [[-CW, -10.5], [8.8, -21], [-7, 21], [CW, 8], [-CW, 9.5]]
 W([-CW, -3], [-CW, -0.6], 'leather', { h: 0.45, t: 0.7 })
@@ -287,17 +304,20 @@ W([-CW, 6], [-CW, 8], 'orange', { h: 0.55, t: 0.9 })
 for (const p of PLANTS) dot(p)
 
 // colliders with bounding boxes for fast rejection
-export const COLLIDERS = WALLS.filter((w) => w.collide).map((w) => ({
-  ...w,
-  minx: Math.min(w.a[0], w.b[0]),
-  maxx: Math.max(w.a[0], w.b[0]),
-  minz: Math.min(w.a[1], w.b[1]),
-  maxz: Math.max(w.a[1], w.b[1]),
-}))
+export const boxed = (walls) =>
+  walls.map((w) => ({
+    ...w,
+    minx: Math.min(w.a[0], w.b[0]),
+    maxx: Math.max(w.a[0], w.b[0]),
+    minz: Math.min(w.a[1], w.b[1]),
+    maxz: Math.max(w.a[1], w.b[1]),
+  }))
+export const COLLIDERS = boxed(WALLS.filter((w) => w.collide))
 
-export function collide(pos) {
+// push a circle (the player) out of every wall segment in `list`
+export function collide(pos, list = COLLIDERS) {
   for (let it = 0; it < 3; it++) {
-    for (const s of COLLIDERS) {
+    for (const s of list) {
       const rr = R_PLAYER + s.t / 2
       if (pos.x < s.minx - rr || pos.x > s.maxx + rr || pos.z < s.minz - rr || pos.z > s.maxz + rr) continue
       const dx = s.b[0] - s.a[0]
@@ -333,7 +353,8 @@ export function locate(x, z) {
   return z < 0 ? 'North cloister' : 'South cloister'
 }
 
-// floor height under a point (risers inside classrooms, 0 elsewhere)
+// floor height under a point on one floor (risers inside classrooms, 0 elsewhere).
+// levels.js adds the floor's elevation and handles the spiral stairs.
 export function floorAt(x, z) {
   for (const d of DRUMS) {
     const T = d.tiers

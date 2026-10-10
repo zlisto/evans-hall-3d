@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 from functools import lru_cache
@@ -117,3 +118,26 @@ def by_schedule(day: str = "", room: str = "", session: str = "", limit: int = 2
     if day:
         rows = [r for r in rows if meets_on(r["daytimes"], day)]
     return rows[:limit]
+
+
+def profile(slug: str) -> dict | None:
+    """Researched profile (professor_profiles table, written by scripts/save_profile.py), if any."""
+    try:
+        rows = _query("SELECT * FROM professor_profiles WHERE slug = ?", (slug,))
+    except sqlite3.OperationalError:  # table not created yet
+        return None
+    return rows[0] if rows else None
+
+
+def appearances() -> dict[str, dict]:
+    """slug -> avatar appearance for every profile that has one."""
+    try:
+        rows = _query("SELECT slug, appearance FROM professor_profiles")
+    except sqlite3.OperationalError:
+        return {}
+    out = {}
+    for r in rows:
+        look = json.loads(r["appearance"] or "{}")
+        if look:
+            out[r["slug"]] = look
+    return out

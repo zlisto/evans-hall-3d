@@ -1,25 +1,28 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import Professor, { PROFESSORS } from './Professor.jsx'
 import Zaman, { ZAMAN } from './Zaman.jsx'
 import Schott, { SCHOTT } from './Schott.jsx'
+import PersonAvatar from './PersonAvatar.jsx'
 import { DRUMS, LECTERNS } from './layout.js'
+import { DRUMS4, ELEV4 } from './floor4.js'
+import { ASSIGNMENTS, ROOM_ASSIGN } from './rooms.js'
+import { api } from './talk.js'
 
-// real faculty you can chat with: room key -> avatar component + backend slug/name
+// hand-built avatars, keyed by backend slug. Everyone else with a researched look in the DB
+// (professor_profiles.appearance, via /api/avatars) gets a PersonAvatar.
 export const TALKER_AVATARS = {
-  zaman: { Avatar: Zaman, ...ZAMAN },
-  schott: { Avatar: Schott, ...SCHOTT },
+  [ZAMAN.slug]: { Avatar: Zaman, ...ZAMAN },
+  [SCHOTT.slug]: { Avatar: Schott, ...SCHOTT },
 }
-export const TALKER_NAMES = Object.fromEntries(Object.values(TALKER_AVATARS).map((a) => [a.slug, a.name]))
+// names for the chat window: every professor with a room can be talked to once they have an avatar
+export const TALKER_NAMES = Object.fromEntries(ASSIGNMENTS.map((a) => [a.slug, a.professor]))
 
-// which professor teaches in which classroom (matches the slide decks)
-export const ROOM_PROFESSOR = {
-  2400: 'dumbledore', // MGT 402 Basics of Accounting
-  2410: 'mcgonagall', // MGT 404 Basics of Economics
-  2420: 'trelawney', // MGT 403 Probability Modeling & Statistics
+// Hogwarts guest professors in rooms without a real course (see data/room_assignments.json)
+export const GUEST_PROFESSOR = {
+  2400: 'dumbledore', // MGT 538 Mastering Influence & Persuasion
+  2420: 'trelawney', // HOG 403 Forecasting & Divination
   2430: 'slughorn', // MGT 887 Negotiations
-  2200: 'zaman', // MGT 409 AI Foundations for Managers: the course catalog puts it in Evans 2200
-  2210: 'schott', // MGT 407 Statistics (EMBA)
   2220: 'moody', // MGT 800 Crisis Management in Tech
   2230: 'flitwick', // MGT 541 Corporate Finance
 }
@@ -42,41 +45,53 @@ function plaqueTex(name) {
   return t
 }
 
-const nameOf = (who) => (TALKER_AVATARS[who] ?? PROFESSORS[who]).name
+// one entry per classroom on floors 2 and 4: who stands at the front, and the lectern plaque
+function roomItems(drums, y) {
+  return drums.flatMap((d, i) => {
+    const real = ROOM_ASSIGN[d.id]
+    const guest = !real && GUEST_PROFESSOR[d.id]
+    const name = real ? real.professor : guest && PROFESSORS[guest].name
+    if (!name) return [] // open room
+    const { fc, back, t, half, rot } = d.front
+    const lec = LECTERNS[i]
+    return [
+      {
+        key: d.id,
+        avatar: real && TALKER_AVATARS[real.slug],
+        slug: real?.slug,
+        guest,
+        pos: [fc[0] + back[0] * 1.15 - t[0] * half * 0.3, y, fc[1] + back[1] * 1.15 - t[1] * half * 0.3],
+        rot,
+        plaque: { p: [lec.x + back[0] * 0.26, y + 0.85, lec.z + back[1] * 0.26], mat: new THREE.MeshBasicMaterial({ map: plaqueTex(name) }) },
+      },
+    ]
+  })
+}
 
 export default function Faculty({ talkingTo, onTalk }) {
-  const items = useMemo(
-    () =>
-      DRUMS.map((d, i) => {
-        const who = ROOM_PROFESSOR[d.id]
-        const { fc, back, t, half, rot } = d.front
-        const lec = LECTERNS[i]
-        return {
-          who,
-          pos: [fc[0] + back[0] * 1.15 - t[0] * half * 0.3, 0, fc[1] + back[1] * 1.15 - t[1] * half * 0.3],
-          rot,
-          plaque: { p: [lec.x + back[0] * 0.26, 0.85, lec.z + back[1] * 0.26], rot, mat: new THREE.MeshBasicMaterial({ map: plaqueTex(nameOf(who)) }) },
-        }
-      }),
-    [],
-  )
+  const items = useMemo(() => [...roomItems(DRUMS, 0), ...roomItems(DRUMS4, ELEV4)], [])
+  const [looks, setLooks] = useState({}) // slug -> appearance from the backend
+  useEffect(() => {
+    api('/avatars')
+      .then(setLooks)
+      .catch(() => {}) // backend offline: those rooms just keep their plaque
+  }, [])
   return (
     <>
-      {items.map((it, i) => {
-        const talker = TALKER_AVATARS[it.who]
-        return (
-          <group key={i}>
-            {talker ? (
-              <talker.Avatar position={it.pos} rotation={it.rot} talking={talkingTo === talker.slug} onTalk={onTalk} />
-            ) : (
-              <Professor who={it.who} position={it.pos} rotation={it.rot} phase={i * 1.7} />
-            )}
-            <mesh position={it.plaque.p} rotation={[0, it.plaque.rot, 0]} material={it.plaque.mat}>
-              <planeGeometry args={[0.6, 0.15]} />
-            </mesh>
-          </group>
-        )
-      })}
+      {items.map((it, i) => (
+        <group key={it.key}>
+          {it.avatar ? (
+            <it.avatar.Avatar position={it.pos} rotation={it.rot} talking={talkingTo === it.avatar.slug} onTalk={onTalk} />
+          ) : looks[it.slug] ? (
+            <PersonAvatar slug={it.slug} look={looks[it.slug]} position={it.pos} rotation={it.rot} talking={talkingTo === it.slug} onTalk={onTalk} />
+          ) : it.guest ? (
+            <Professor who={it.guest} position={it.pos} rotation={it.rot} phase={i * 1.7} />
+          ) : null}
+          <mesh position={it.plaque.p} rotation={[0, it.rot, 0]} material={it.plaque.mat}>
+            <planeGeometry args={[0.6, 0.15]} />
+          </mesh>
+        </group>
+      ))}
       {/* Hagrid keeps an eye on the Labubus in the courtyard */}
       <Professor who="hagrid" position={[-10.5, -5, -2]} rotation={Math.PI / 2} />
     </>

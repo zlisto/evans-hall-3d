@@ -42,7 +42,7 @@ function Rich({ text }) {
   )
 }
 
-export default function ChatPanel({ slug, name, onClose }) {
+export default function ChatPanel({ slug, name, onClose, onAuthLost }) {
   const saved = memory.get(slug)
   const [profile, setProfile] = useState(saved?.profile ?? null)
   const [messages, setMessages] = useState(saved?.messages ?? [])
@@ -50,6 +50,7 @@ export default function ChatPanel({ slug, name, onClose }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [offline, setOffline] = useState(false)
+  const [usage, setUsage] = useState(null) // { spent, limit } for this login session; the server is the source of truth
   const box = useRef()
   const field = useRef()
   const last = name.split(' ').slice(-1)[0]
@@ -72,6 +73,13 @@ export default function ChatPanel({ slug, name, onClose }) {
   }, [slug, profile, last])
 
   useEffect(() => {
+    api('/auth/me')
+      .then((m) => setUsage({ spent: m.spent_usd, limit: m.limit_usd }))
+      .catch((err) => err.status === 401 && onAuthLost()) // login expired: back to the home page
+  }, [onAuthLost])
+  const limitHit = usage !== null && usage.spent >= usage.limit
+
+  useEffect(() => {
     box.current?.scrollTo({ top: box.current.scrollHeight, behavior: 'smooth' })
   }, [messages, busy])
 
@@ -84,7 +92,7 @@ export default function ChatPanel({ slug, name, onClose }) {
 
   const send = async () => {
     const text = input.trim()
-    if (!text || busy) return
+    if (!text || busy || limitHit) return
     setInput('')
     setMessages((m) => [...m, { role: 'me', text }])
     setBusy(true)
@@ -93,7 +101,15 @@ export default function ChatPanel({ slug, name, onClose }) {
       setSessionId(r.session_id)
       setOffline(false)
       setMessages((m) => [...m, { role: 'prof', text: r.reply, tools: [...new Set(r.tools_used)] }])
+      setUsage({ spent: r.spent_usd, limit: r.limit_usd })
     } catch (err) {
+      if (err.status === 401) return onAuthLost() // login expired: back to the home page
+      if (err.status === 402) {
+        setInput(text)
+        setMessages((m) => m.slice(0, -1))
+        setUsage((u) => ({ spent: Math.max(u?.spent ?? 0, u?.limit ?? 0), limit: u?.limit ?? 0 })) // server says we're out
+        return
+      }
       setMessages((m) => [...m, { role: 'system', text: `Couldn't reach Prof. ${last}: ${err.message}` }])
     } finally {
       setBusy(false)
@@ -114,6 +130,16 @@ export default function ChatPanel({ slug, name, onClose }) {
           ✕
         </button>
       </header>
+      {usage && (
+        <div className="chat-meter" title="AI cost for this login session">
+          <div className="bar">
+            <i style={{ width: `${Math.min(100, (usage.spent / usage.limit) * 100)}%` }} />
+          </div>
+          <span>
+            ${usage.spent.toFixed(4)} of ${usage.limit.toFixed(2)} used
+          </span>
+        </div>
+      )}
       <div className="chat-log" ref={box}>
         {messages.map((msg, i) => (
           <div key={i} className={`msg ${msg.role}`}>
@@ -127,6 +153,12 @@ export default function ChatPanel({ slug, name, onClose }) {
             <div className="bubble">{msg.role === 'prof' ? <Rich text={msg.text} /> : msg.text}</div>
           </div>
         ))}
+        {limitHit && (
+          <div className="limit-flash" role="alert">
+            <b>Free Tier Limit Reached</b>
+            <span>This login has used its ${usage.limit.toFixed(2)} of AI chat. You can keep exploring Evans Hall.</span>
+          </div>
+        )}
         {busy && (
           <div className="msg prof">
             <div className="bubble thinking">
@@ -148,7 +180,8 @@ export default function ChatPanel({ slug, name, onClose }) {
           ref={field}
           rows={1}
           value={input}
-          placeholder={`Ask Prof. ${last} anything…`}
+          placeholder={limitHit ? 'Chat limit reached' : `Ask Prof. ${last} anything…`}
+          disabled={limitHit}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -157,7 +190,7 @@ export default function ChatPanel({ slug, name, onClose }) {
             }
           }}
         />
-        <button type="submit" disabled={busy || !input.trim()}>
+        <button type="submit" disabled={busy || limitHit || !input.trim()}>
           Send
         </button>
       </form>
