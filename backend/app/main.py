@@ -5,7 +5,9 @@ Run from backend/:  .venv/Scripts/python -m uvicorn app.main:app --port 8000
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import os
 import uuid
 from collections import OrderedDict
 
@@ -20,6 +22,18 @@ from .config import CORS_ORIGINS, MODEL_NAME
 from .schemas import ChatReply, ChatRequest, ProfessorProfile, ProfessorSummary
 
 log = logging.getLogger("som")
+
+
+def _key_fingerprint() -> str:
+    """Length + short hash of the Portkey key, so deployments can be compared without showing the key."""
+    key = os.getenv("PORTKEY_API_KEY") or ""
+    if not key:
+        return "MISSING"
+    return f"{len(key)} chars, sha256 {hashlib.sha256(key.encode()).hexdigest()[:8]}"
+
+
+print(f"[startup] model={MODEL_NAME} | PORTKEY_API_KEY: {_key_fingerprint()} | PORTKEY_VIRTUAL_KEY: {'set' if os.getenv('PORTKEY_VIRTUAL_KEY') else 'not set'}", flush=True)
+
 app = FastAPI(title="Yale SOM Virtual: professor agents")
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["*"])
 
