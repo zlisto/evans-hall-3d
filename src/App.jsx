@@ -4,6 +4,9 @@ import World from './World.jsx'
 import Player from './Player.jsx'
 import Minimap from './Minimap.jsx'
 import TouchControls from './TouchControls.jsx'
+import TalkAim from './TalkAim.jsx'
+import ChatPanel from './ChatPanel.jsx'
+import { TALKER_NAMES } from './Faculty.jsx'
 import { EYE, SPAWN } from './layout.js'
 
 export default function App() {
@@ -24,8 +27,23 @@ export default function App() {
     setTouchOn(on)
   }
   const playing = locked || touchOn
+  // chatting: who you're talking to (backend slug) and who the crosshair is on
+  const [chat, setChat] = useState(null)
+  const [aimAt, setAimAt] = useState(null)
+  const onAim = useCallback((slug) => setAimAt(slug), [])
+  const openChat = useCallback((slug) => {
+    setChat(slug)
+    if (document.pointerLockElement) document.exitPointerLock() // free the mouse for the chat window
+  }, [])
+  const closeChat = useCallback(
+    (resume) => {
+      setChat(null)
+      if (resume && !touchRef.current.active) lockRef.current?.() // ✕ button click: jump straight back in
+    },
+    [],
+  )
   useEffect(() => {
-    const k = (e) => e.code === 'KeyM' && setShowMap((v) => !v)
+    const k = (e) => e.code === 'KeyM' && !e.target.closest?.('input, textarea') && setShowMap((v) => !v)
     window.addEventListener('keydown', k)
     return () => window.removeEventListener('keydown', k)
   }, [])
@@ -36,9 +54,23 @@ export default function App() {
         camera={{ fov: 72, near: 0.05, far: 800, position: [SPAWN.x, EYE, SPAWN.z] }}
         dpr={[1, 1.75]}
       >
-        <World />
+        <World talkingTo={chat} onTalk={openChat} />
         <Player lockRef={lockRef} mapRef={mapRef} touchRef={touchRef} onLock={onLock} onWhere={onWhere} />
+        <TalkAim enabled={playing && !chat} onAim={onAim} onTalk={openChat} />
       </Canvas>
+
+      {aimAt && playing && !chat && (
+        <div className="talkhint">
+          {touchOn ? (
+            <button onClick={() => openChat(aimAt)}>💬 Talk to Prof. {TALKER_NAMES[aimAt]?.split(' ').slice(-1)[0]}</button>
+          ) : (
+            <span>
+              <b>Click</b> or <b>E</b> to talk to Prof. {TALKER_NAMES[aimAt]?.split(' ').slice(-1)[0]}
+            </span>
+          )}
+        </div>
+      )}
+      {chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} />}
 
       <div className="where">
         <span className="dot" />
@@ -50,10 +82,10 @@ export default function App() {
       <button className="maptoggle" onClick={() => setShowMap((s) => !s)}>
         {showMap ? 'hide map' : 'map'}
       </button>
-      {playing && <div className="crosshair" />}
-      {touchOn && <TouchControls touchRef={touchRef} onPause={() => setTouch(false)} />}
+      {playing && !chat && <div className={aimAt ? 'crosshair on' : 'crosshair'} />}
+      {touchOn && !chat && <TouchControls touchRef={touchRef} onPause={() => setTouch(false)} />}
 
-      {!playing && (
+      {!playing && !chat && (
         <div className="overlay" onClick={() => (isTouch ? setTouch(true) : lockRef.current?.())}>
           <div className="card">
             <div className="kicker">Yale SOM · Evans Hall</div>
