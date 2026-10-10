@@ -8,10 +8,13 @@ import {
 } from './layout.js'
 import { ELEV4 } from './floor4.js'
 import Floor4 from './Floor4.jsx'
+import Floor1 from './Floor1.jsx'
+import { ELEV1 } from './floor1.js'
 import SpiralTowers from './SpiralTowers.jsx'
 import * as T from './textures.js'
-import LabubuParty, { MeetingLabubus } from './LabubuParty.jsx'
+import { MeetingLabubus } from './LabubuParty.jsx'
 import LabubuCrowd from './LabubuCrowd.jsx'
+import LabubuWalkers from './LabubuWalkers.jsx'
 import Faculty from './Faculty.jsx'
 import HandsomeDan from './HandsomeDan.jsx'
 import { COURSE_KEYS, slideTex } from './slides.js'
@@ -117,6 +120,8 @@ export function useMaterials() {
       woodDoor: std({ map: T.teakTex(), roughness: 0.5 }),
       granite: std({ map: T.stoneTex([1, 1]), color: '#b9b6ae', roughness: 0.7 }),
       tableWhite: std({ color: '#ecebe7', roughness: 0.4 }),
+      darkPanel: std({ color: '#1c1c1f', roughness: 0.5 }),
+      cabinet: std({ color: '#141416', roughness: 0.35, metalness: 0.2 }),
       beinGlass: glass('#d7ecf2', 0.12),
       meetGlass: glass('#c9d6e6', 0.22),
       rail: glass('#9fb3c8', 0.3),
@@ -138,7 +143,6 @@ export function useMaterials() {
       ceiling: std({ color: '#f7f5f0', roughness: 1, side: THREE.DoubleSide }),
       lawn: std({ map: T.lawnTex(), roughness: 1 }),
       ground: std({ color: '#2b3a26', roughness: 1 }),
-      cafe: std({ map: T.windowsTex(true), emissive: '#ffffff', emissiveMap: T.windowsTex(true), emissiveIntensity: 0.6, side: THREE.DoubleSide }),
       upper: std({ map: T.windowsTex(false), emissive: '#ffffff', emissiveMap: T.windowsTex(false), emissiveIntensity: 0.35, side: THREE.DoubleSide }),
       mural: std({ map: T.muralTex(), roughness: 0.9, side: THREE.DoubleSide }),
       velvet: std({ color: '#0d0b10', roughness: 1 }),
@@ -186,7 +190,7 @@ function Atmosphere() {
 
 // ---------- floor + ceiling with the courtyard hole
 function FloorAndCeiling({ M }) {
-  const [floor, ceil, lawn] = useMemo(() => {
+  const [floor, ceil] = useMemo(() => {
     const { xMin, xMax, zMin, zMax } = BOUNDS
     const make = (flip, towerHoles = false) => {
       const f = (x, z) => new THREE.Vector2(x, flip ? -z : z)
@@ -197,58 +201,32 @@ function FloorAndCeiling({ M }) {
       g.rotateX(flip ? -Math.PI / 2 : Math.PI / 2)
       return g
     }
-    const lawnShape = new THREE.Shape(COURTYARD.map(([x, z]) => new THREE.Vector2(x, -z)))
-    const lg = new THREE.ShapeGeometry(lawnShape)
-    lg.rotateX(-Math.PI / 2)
-    return [make(true), make(false, true), lg]
+    return [make(true, true), make(false, true)]
   }, [])
   return (
     <>
       <mesh geometry={floor} material={M.carpet} />
       <mesh geometry={ceil} material={M.ceiling} position={[0, H, 0]} />
-      <mesh geometry={lawn} material={M.lawn} position={[0, -5, 0]} />
-      <mesh material={M.ground} rotation={[-Math.PI / 2, 0, 0]} position={[0, -5.05, 0]}>
+      <mesh material={M.ground} rotation={[-Math.PI / 2, 0, 0]} position={[0, ELEV1 - 0.05, 0]}>
         <planeGeometry args={[600, 600]} />
       </mesh>
     </>
   )
 }
 
+// floor-2 courtyard glass + the floor-3 band above it (the ground-floor terrace is in Floor1.jsx)
 function Courtyard({ M }) {
   const glass = useMemo(() => ribbon(COURTYARD, 0, H), [])
-  const cafe = useMemo(() => ribbon(COURTYARD, -5, 0), [])
   const upper = useMemo(() => ribbon(COURTYARD, H, ELEV4, 0.12), []) // floor 3 (not walkable)
   const mullions = useMemo(
     () => COURTYARD.filter((_, i) => i % 6 === 0).map(([x, z]) => ({ p: [x, H / 2, z], s: [0.07, H, 0.07] })),
     [],
   )
-  const trees = useMemo(() => {
-    const spots = [[-10, -9], [0, -11.5], [10, -8.5], [-12, 3], [12, 4], [-5, 11], [7, 11.5], [-2, 1]]
-    return spots
-  }, [])
-  const cafeTables = useMemo(() => {
-    const r = rng(4)
-    const out = []
-    for (let i = 0; i < 14; i++) {
-      const a = r() * TAU
-      out.push({ p: [Math.sin(a) * 12, -4.6, Math.cos(a) * 14], s: [0.9, 0.06, 0.9] })
-    }
-    return out
-  }, [])
   return (
     <>
       <mesh geometry={glass} material={M.glass} />
-      <mesh geometry={cafe} material={M.cafe} />
       <mesh geometry={upper} material={M.upper} />
       <Instanced items={mullions} material={M.mullion} geometry={BOX} />
-      <Instanced items={trees.map(([x, z]) => ({ p: [x, -3.5, z], s: [0.35, 3, 0.35] }))} material={M.trunk} geometry={BOX} />
-      <Instanced
-        items={trees.map(([x, z], i) => ({ p: [x, -0.8 + (i % 3) * 0.6, z], s: [3.2, 2.6, 3.2] }))}
-        material={M.crown}
-        geometry={SPHERE}
-      />
-      <Instanced items={cafeTables} material={M.board} geometry={BOX} />
-      <LabubuParty />
     </>
   )
 }
@@ -272,14 +250,14 @@ function OutsideTrees({ M }) {
   }, [])
   return (
     <>
-      <Instanced items={items.map(([x, z]) => ({ p: [x, -2.5, z], s: [0.5, 5, 0.5] }))} material={M.trunk} geometry={BOX} />
-      <Instanced items={items.map(([x, z, s]) => ({ p: [x, 1 + s * 0.5, z], s: [s, s * 0.9, s] }))} material={M.crown} geometry={SPHERE} />
+      <Instanced items={items.map(([x, z]) => ({ p: [x, ELEV1 + 2.5, z], s: [0.5, 5, 0.5] }))} material={M.trunk} geometry={BOX} />
+      <Instanced items={items.map(([x, z, s]) => ({ p: [x, ELEV1 + 6 + s * 0.5, z], s: [s, s * 0.9, s] }))} material={M.crown} geometry={SPHERE} />
     </>
   )
 }
 
 // ---------- walls (instanced by material)
-const WALL_MATS = ['white', 'sage', 'exterior', 'libGlass', 'readGlass', 'band', 'beinGlass', 'meetGlass', 'slats', 'desk', 'shelf', 'leather', 'orange']
+const WALL_MATS = ['white', 'sage', 'exterior', 'libGlass', 'readGlass', 'band', 'beinGlass', 'meetGlass', 'slats', 'desk', 'shelf', 'leather', 'orange', 'darkPanel', 'cabinet']
 export function Walls({ M, list = WALLS }) {
   const groups = useMemo(() => WALL_MATS.map((m) => [m, wallItems(m, list)]), [list])
   return groups.map(([m, items]) => <Instanced key={m} items={items} material={M[m]} geometry={BOX} />)
@@ -567,9 +545,11 @@ export default function World({ talkingTo, onTalk }) {
       <Stairs M={M} />
       <Details M={M} />
       <LabubuCrowd />
+      <LabubuWalkers />
       <Faculty talkingTo={talkingTo} onTalk={onTalk} />
       <HandsomeDan />
       <SpiralTowers M={M} />
+      <Floor1 M={M} />
       <Floor4 M={M} />
     </>
   )

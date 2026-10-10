@@ -6,6 +6,7 @@ import Schott, { SCHOTT } from './Schott.jsx'
 import PersonAvatar from './PersonAvatar.jsx'
 import { DRUMS, LECTERNS } from './layout.js'
 import { DRUMS4, ELEV4 } from './floor4.js'
+import { ELEV1 } from './floor1.js'
 import { ASSIGNMENTS, ROOM_ASSIGN } from './rooms.js'
 import { api } from './talk.js'
 
@@ -93,7 +94,7 @@ export default function Faculty({ talkingTo, onTalk }) {
         </group>
       ))}
       {/* Hagrid keeps an eye on the Labubus in the courtyard */}
-      <Professor who="hagrid" position={[-10.5, -5, -2]} rotation={Math.PI / 2} />
+      <Professor who="hagrid" position={[-10.5, ELEV1, -2]} rotation={Math.PI / 2} />
     </>
   )
 }

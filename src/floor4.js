@@ -73,7 +73,7 @@ export const READ_DESK = { x: LIBRARY.x1 - 2.6, z: -4.2, r: 0.95 } // round wood
       READ_TABLES.push({ x: tx, z0: za, z1: zb })
       W([tx, za], [tx, zb], 'none', { t: 1.1 })
       for (let z = za + 0.6; z < zb; z += 1.1)
-        for (const s of [-1, 1]) CHAIRS4.push({ x: tx + s * 0.85, z, rot: s > 0 ? -Math.PI / 2 : Math.PI / 2 })
+        for (const s of [-1, 1]) CHAIRS4.push({ x: tx + s * 0.85, z, rot: s > 0 ? Math.PI / 2 : -Math.PI / 2 }) // backrest away from the table
     }
   }
   W([READ_DESK.x, READ_DESK.z], [READ_DESK.x + 0.01, READ_DESK.z], 'none', { t: READ_DESK.r * 2 })

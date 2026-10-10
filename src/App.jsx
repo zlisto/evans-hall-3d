@@ -99,8 +99,8 @@ export default function App({ onLogout }) {
         <div className="overlay" onClick={() => (isTouch ? setTouch(true) : lockRef.current?.())}>
           <div className="card">
             <div className="kicker">Yale SOM · Evans Hall</div>
-            <h1>Floor 2</h1>
-            <p className="sub">Classroom drums, the cloister, Ross Library, the Beinecke Terrace Room, and the courtyard.</p>
+            <h1>Evans Hall</h1>
+            <p className="sub">Floor 1: the courtyard, McNay Café and Charley's. Floors 2 and 4: the classroom drums. The spiral stairs on the west side connect them all.</p>
             <button className="go">{isTouch ? 'Tap to walk in' : 'Click to walk in'}</button>
             {!isTouch && (
               <button

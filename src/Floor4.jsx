@@ -76,11 +76,11 @@ function ReadingRoom({ M }) {
 }
 
 // closed wood office doors with small number plates
-function OfficeDoors({ M }) {
-  const doors = useMemo(() => OFFICE_DOORS.map((d) => ({ p: [d.x, 1.1, d.z], r: d.rot, s: [1.0, 2.2, 0.05] })), [])
+export function OfficeDoors({ M, doors = OFFICE_DOORS }) {
+  const panels = useMemo(() => doors.map((d) => ({ p: [d.x, 1.1, d.z], r: d.rot, s: [1.0, 2.2, 0.05] })), [doors])
   const plates = useMemo(
     () =>
-      OFFICE_DOORS.map((d) => {
+      doors.map((d) => {
         const c = document.createElement('canvas')
         c.width = 128
         c.height = 64
@@ -96,12 +96,12 @@ function OfficeDoors({ M }) {
         t.colorSpace = THREE.SRGBColorSpace
         return new THREE.MeshBasicMaterial({ map: t })
       }),
-    [],
+    [doors],
   )
   return (
     <>
-      <Instanced items={doors} material={M.woodDoor} geometry={BOX} />
-      {OFFICE_DOORS.map((d, i) => {
+      <Instanced items={panels} material={M.woodDoor} geometry={BOX} />
+      {doors.map((d, i) => {
         const off = d.rot === 0 ? 0.03 : -0.03 // plate sits on the hallway side of the door
         return <Plane key={i} p={[d.x + 0.7, 1.55, d.z + off]} rot={d.rot} w={0.36} h={0.18} material={plates[i]} />
       })}

@@ -2,9 +2,11 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { EXPRESSIONS, G, SKIN, YALE_BLUE, faceTex, furTex, shirtTex } from './Labubu.jsx'
 import { CHAIRS, DRUMS } from './layout.js'
+import { ELEV4 } from './floor4.js'
+import { CHAIRS1, ELEV1 } from './floor1.js'
 
-// ~30 seated Labubu students per classroom, drawn with a handful of instanced meshes
-// (one per body part) so hundreds of them stay cheap.
+// Seated Labubu students (classrooms on floors 2 and 4, tables on floor 1), drawn with a handful of
+// instanced meshes (one per body part) so hundreds of them stay cheap.
 const STUDENTS_PER_ROOM = 30
 const HEIGHT = 0.95
 const FURS = ['#5a3d2e', '#d9c2a0', '#ff8fc7', '#9fe0c6', '#b9a5e6', '#8d8d93', '#f2efe9', '#f2a65a', '#7fb2ff', '#2b2b2e', '#c98f6b', '#e6d36b']
@@ -24,30 +26,36 @@ const E = new THREE.Euler()
 const M = (p = [0, 0, 0], r = [0, 0, 0], s = [1, 1, 1]) => new THREE.Matrix4().compose(V.set(...p), Q.setFromEuler(E.set(...r)), S.set(...s))
 const mul = (...ms) => ms.reduce((a, b) => a.clone().multiply(b))
 
-// pick seats + outfits once
-export const STUDENTS = DRUMS.flatMap((d, di) => {
-  const r = rand(4242 + di * 977)
+// pick seats + outfits once: ~30 students in every classroom on floors 2 and 4 (same drums, different
+// kids), plus some ground-floor regulars at the café, Forum, dining and terrace tables
+function seat(c, y0, r) {
   const pick = (a) => a[Math.floor(r() * a.length)]
-  const seats = CHAIRS.filter((c) => c.room === d.id)
-    .map((c) => [r(), c])
-    .sort((a, b) => a[0] - b[0])
-    .slice(0, STUDENTS_PER_ROOM)
-    .map(([, c]) => c)
-  return seats.map((c) => {
-    const shirt = pick(SHIRTS)
-    return {
-      x: c.x,
-      y: (c.y || 0) + 0.51 - 0.11 * HEIGHT,
-      z: c.z,
-      rot: c.rot + Math.PI,
-      fur: pick(FURS),
-      expression: pick(EXPRESSIONS),
-      shirt,
-      shirtColor: pick(SHIRT_COLORS),
-      pants: pick(PANTS),
-    }
+  return {
+    x: c.x,
+    y: y0 + (c.y || 0) + 0.51 - 0.11 * HEIGHT,
+    z: c.z,
+    rot: c.rot + Math.PI,
+    fur: pick(FURS),
+    expression: pick(EXPRESSIONS),
+    shirt: pick(SHIRTS),
+    shirtColor: pick(SHIRT_COLORS),
+    pants: pick(PANTS),
+  }
+}
+const classrooms = (y0, seed) =>
+  DRUMS.flatMap((d, di) => {
+    const r = rand(seed + di * 977)
+    return CHAIRS.filter((c) => c.room === d.id)
+      .map((c) => [r(), c])
+      .sort((a, b) => a[0] - b[0])
+      .slice(0, STUDENTS_PER_ROOM)
+      .map(([, c]) => seat(c, y0, r))
   })
-})
+const groundFloor = () => {
+  const r = rand(31337)
+  return CHAIRS1.filter((c) => c.kind !== 'stool' && r() < 0.4).map((c) => seat(c, ELEV1, r))
+}
+export const STUDENTS = [...classrooms(0, 4242), ...classrooms(ELEV4, 9191), ...groundFloor()]
 
 // local part transforms for a seated Labubu (same layout as Labubu.jsx)
 function partsFor(s) {

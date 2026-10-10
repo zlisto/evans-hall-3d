@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { BEIN, BOUNDS, COURTYARD, DRUMS, LIBRARY, MEETING, STAIRS, TOWER_R, arc } from './layout.js'
 import { DRUMS4, READING } from './floor4.js'
+import { CAFE, FORUM, KITCHEN, SUITES, SUITE_Z } from './floor1.js'
 import { DAN } from './HandsomeDan.jsx'
 
 const PAD = 3
@@ -13,15 +14,83 @@ const Wpx = Math.round((X1 - X0) * S)
 const Hpx = Math.round((Z1 - Z0) * S)
 const px = (x, z) => [(x - X0) * S, (z - Z0) * S]
 
+function drawStairs(g) {
+  g.fillStyle = '#ff4fa3'
+  g.font = 'bold 10px system-ui, sans-serif'
+  for (const s of STAIRS) {
+    if (s.spiral) {
+      g.beginPath()
+      g.arc(...px(...s.c), TOWER_R * S, 0, Math.PI * 2)
+      g.fill()
+      g.fillStyle = '#0b0b0d'
+      g.fillText(s.id, ...px(s.c[0] - 0.9, s.c[1] + 1.2))
+      g.fillStyle = '#ff4fa3'
+      continue
+    }
+    g.fillRect(...px(s.c[0] - s.w / 2, s.c[1] - s.d / 2), s.w * S, s.d * S)
+    g.fillStyle = '#0b0b0d'
+    g.fillText(s.id, ...px(s.c[0] - 0.9, s.c[1] + 1.2))
+    g.fillStyle = '#ff4fa3'
+  }
+}
+
+// ground floor: the courtyard is walkable; round café + Forum in the west corners
+function drawFloor1(g, path) {
+  g.fillStyle = '#1a1a1f'
+  g.strokeStyle = '#ff4fa3'
+  g.lineWidth = 1.5
+  path([[BOUNDS.xMin, BOUNDS.zMin], [BOUNDS.xMax, BOUNDS.zMin], [BOUNDS.xMax, BOUNDS.zMax], [BOUNDS.xMin, BOUNDS.zMax]])
+  g.fill()
+  g.stroke()
+  path(arc(BEIN.c, BEIN.r, BEIN.r, 0, Math.PI, 30)) // Zhang Auditorium sits under the Beinecke Room
+  g.fillStyle = '#2b2236'
+  g.fill()
+  g.stroke()
+  path(COURTYARD)
+  g.fillStyle = '#26472a'
+  g.fill()
+  g.strokeStyle = '#ffb3d9'
+  g.stroke()
+  g.strokeStyle = '#ff4fa3'
+  for (const r of [CAFE, FORUM]) {
+    path(arc(r.c, r.r, r.r, 0, Math.PI * 2, 48))
+    g.fillStyle = '#3b2a1c'
+    g.fill()
+    g.stroke()
+  }
+  g.fillStyle = '#26262e'
+  g.fillRect(...px(KITCHEN.x0, KITCHEN.z0), (KITCHEN.x1 - KITCHEN.x0) * S, (KITCHEN.z1 - KITCHEN.z0) * S)
+  g.fillRect(...px(-35, 44.3), 57.6 * S, (BOUNDS.zMax - 44.3) * S)
+  g.fillRect(...px(-35, BOUNDS.zMin), 57.6 * S, (-45.3 - BOUNDS.zMin) * S)
+  g.fillRect(...px(SUITES[0].x0, SUITE_Z[0]), (SUITES[3].x1 - SUITES[0].x0) * S, (SUITE_Z[1] - SUITE_Z[0]) * S)
+  g.fillStyle = '#ffd6ea'
+  g.font = '9px system-ui, sans-serif'
+  g.fillText('CAFÉ', ...px(CAFE.c[0] - 2.5, CAFE.c[1] + 1))
+  g.fillText('FORUM', ...px(FORUM.c[0] - 3, FORUM.c[1] + 1))
+  g.fillText("CHARLEY'S", ...px(-15, -33))
+  g.fillText('COURTYARD', ...px(-7, 1))
+  g.fillText('LOBBY', ...px(-39, 1))
+  g.fillText('AUDITORIUM', ...px(BEIN.c[0] + 0.5, 1))
+  g.fillText('N ↑', ...px(BOUNDS.xMax + 6, BOUNDS.zMin + 2))
+}
+
 function drawStatic(g, level) {
-  const drums = level === 4 ? DRUMS4 : DRUMS
-  g.fillStyle = '#0b0b0d'
-  g.fillRect(0, 0, Wpx, Hpx)
   const path = (pts, close = true) => {
     g.beginPath()
     pts.forEach((p, i) => (i ? g.lineTo(...px(...p)) : g.moveTo(...px(...p))))
     if (close) g.closePath()
   }
+  g.fillStyle = '#0b0b0d'
+  g.fillRect(0, 0, Wpx, Hpx)
+  if (level === 1) {
+    drawFloor1(g, path)
+    drawStairs(g)
+    g.font = 'bold 11px system-ui, sans-serif'
+    g.fillStyle = '#ffd6ea'
+    g.fillText('FLOOR 1', ...px(BOUNDS.xMax + 2, BOUNDS.zMax - 1))
+    return
+  }
+  const drums = level === 4 ? DRUMS4 : DRUMS
   // building
   g.fillStyle = '#1a1a1f'
   g.strokeStyle = '#ff4fa3'
@@ -63,23 +132,7 @@ function drawStatic(g, level) {
     g.fillRect(...px(-35, 44.3), 57.6 * S, (BOUNDS.zMax - 44.3) * S)
     g.fillRect(...px(-35, BOUNDS.zMin), 57.6 * S, (-45.3 - BOUNDS.zMin) * S)
   }
-  g.fillStyle = '#ff4fa3'
-  g.font = 'bold 10px system-ui, sans-serif'
-  for (const s of STAIRS) {
-    if (s.spiral) {
-      g.beginPath()
-      g.arc(...px(...s.c), TOWER_R * S, 0, Math.PI * 2)
-      g.fill()
-      g.fillStyle = '#0b0b0d'
-      g.fillText(s.id, ...px(s.c[0] - 0.9, s.c[1] + 1.2))
-      g.fillStyle = '#ff4fa3'
-      continue
-    }
-    g.fillRect(...px(s.c[0] - s.w / 2, s.c[1] - s.d / 2), s.w * S, s.d * S)
-    g.fillStyle = '#0b0b0d'
-    g.fillText(s.id, ...px(s.c[0] - 0.9, s.c[1] + 1.2))
-    g.fillStyle = '#ff4fa3'
-  }
+  drawStairs(g)
   g.fillStyle = '#ffd6ea'
   g.font = '9px system-ui, sans-serif'
   g.fillText(level === 4 ? 'KENNEY' : 'ROSS LIB', ...px(LIBRARY.x0 + 0.6, 1))
@@ -96,7 +149,7 @@ export default function Minimap({ drawRef }) {
   const ref = useRef()
   useEffect(() => {
     const bgs = {}
-    for (const level of [2, 4]) {
+    for (const level of [1, 2, 4]) {
       const bg = document.createElement('canvas')
       bg.width = Wpx
       bg.height = Hpx
