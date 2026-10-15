@@ -10,6 +10,8 @@ import Schedule from './Schedule.jsx'
 import { TALKER_NAMES } from './Faculty.jsx'
 import { EYE, SPAWN } from './layout.js'
 import { onIdentity, presence } from './mvw.js'
+import { setMuted } from './audio.js'
+import { startSong } from './song.js'
 
 export default function App({ onExit }) {
   const [locked, setLocked] = useState(false)
@@ -59,9 +61,22 @@ export default function App({ onExit }) {
       }),
     [],
   )
+  // chill background music: starts on your first click or key (browsers need one); N or the button mutes it
+  const [musicOn, setMusicOn] = useState(true)
+  useEffect(() => setMuted(!musicOn), [musicOn])
+  useEffect(() => {
+    const start = () => startSong()
+    window.addEventListener('pointerdown', start, { once: true })
+    window.addEventListener('keydown', start, { once: true })
+    return () => {
+      window.removeEventListener('pointerdown', start)
+      window.removeEventListener('keydown', start)
+    }
+  }, [])
   useEffect(() => {
     const k = (e) => {
       if (e.target.closest?.('input, textarea')) return
+      if (e.code === 'KeyN') setMusicOn((v) => !v)
       if (e.code === 'KeyM') setShowMap((v) => !v)
       if (e.code === 'KeyT') setShowSchedule((v) => !v)
     }
@@ -108,6 +123,9 @@ export default function App({ onExit }) {
       <button className="maptoggle" onClick={() => setShowMap((s) => !s)}>
         {showMap ? 'hide map' : 'map'}
       </button>
+      <button className="maptoggle musictoggle" onClick={() => setMusicOn((v) => !v)} aria-label={musicOn ? 'Mute music' : 'Play music'}>
+        {musicOn ? '♪ music' : '♪ off'}
+      </button>
       <button className="maptoggle schedtoggle" onClick={() => setShowSchedule((s) => !s)}>
         {showSchedule ? 'hide schedule' : 'schedule'}
       </button>
@@ -147,6 +165,7 @@ export default function App({ onExit }) {
                 <span><b>C</b> crouch</span>
                 <span><b>M</b> map</span>
                 <span><b>T</b> schedule</span>
+                <span><b>N</b> music</span>
                 <span><b>Esc</b> pause</span>
               </div>
             )}

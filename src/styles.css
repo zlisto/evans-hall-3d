@@ -704,6 +704,9 @@ body,
 .schedtoggle {
   right: 112px;
 }
+.musictoggle {
+  right: 220px;
+}
 
 .schedule {
   position: fixed;
@@ -799,8 +802,12 @@ body,
     right: 16px;
     top: 52px;
   }
+  .musictoggle {
+    right: 16px;
+    top: 88px;
+  }
   .schedule {
-    top: 92px;
+    top: 128px;
     max-height: 55vh;
   }
 }
