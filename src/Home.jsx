@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import HandsomeDanHD from './HandsomeDanHD.jsx'
-import { api, auth } from './talk.js'
+import { ensureSession } from './talk.js'
 
-// Front door: Handsome Dan on a pink pedestal next to the login card. Logging in opens the game.
+// Front door: Handsome Dan on a pink pedestal next to the welcome card. Enter opens the building.
 
 // slow sway left and right so his face stays toward you
 function Sway({ children }) {
@@ -30,50 +30,22 @@ function DanStage() {
 }
 
 export default function Home({ onEnter }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [slow, setSlow] = useState(false)
-
-  useEffect(() => {
-    if (!busy) {
-      setSlow(false)
-      return
-    }
-    const t = setTimeout(() => setSlow(true), 4000) // free Render servers nap; the first login can take a minute
-    return () => clearTimeout(t)
-  }, [busy])
-
-  const submit = async (e) => {
+  const enter = (e) => {
     e.preventDefault()
-    if (busy) return
-    setBusy(true)
-    setError('')
-    try {
-      const r = await api('/auth/login', { email, password })
-      auth.set(r.token)
-      onEnter()
-    } catch (err) {
-      setError(err.status === 401 || err.status === 429 ? err.message : "Couldn't reach the server. Try again in a minute.")
-      setBusy(false)
-    }
+    ensureSession().catch(() => {}) // warm up a chat session in the background (wakes a sleeping server too)
+    onEnter()
   }
-
   return (
     <div className="home">
       <div className="home-dan">
         <DanStage />
       </div>
-      <form className="card home-card" onSubmit={submit}>
+      <form className="card home-card" onSubmit={enter}>
         <div className="kicker">Yale SOM · Evans Hall</div>
         <h1>Virtual Yale SOM</h1>
-        <p className="sub">Walk the 2nd floor of Evans Hall with Handsome Dan, and chat with AI versions of the professors in their classrooms.</p>
-        <input type="email" autoComplete="username" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus required aria-label="Email" />
-        <input type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required aria-label="Password" />
-        {error && <div className="login-error">{error}</div>}
-        <button className="go" type="submit" disabled={busy}>
-          {busy ? (slow ? 'Waking up the server…' : 'Logging in…') : 'Log in'}
+        <p className="sub">Explore three floors of Evans Hall with Handsome Dan, play with the Labubus in the courtyard, and chat with AI versions of the professors in their classrooms.</p>
+        <button className="go" type="submit" autoFocus>
+          Enter
         </button>
       </form>
     </div>

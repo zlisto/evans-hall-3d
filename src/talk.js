@@ -6,7 +6,8 @@ export const REACH = 7 // meters: how close you need to be to start a chat
 
 const API = import.meta.env.VITE_API_URL ?? '' // dev: Vite proxies /api to the FastAPI backend
 
-// login token, remembered in this browser (storage can be blocked, e.g. private windows)
+// anonymous visitor-session token (no login), remembered in this browser so the chat spend limit
+// carries across reloads (storage can be blocked, e.g. private windows)
 const TOKEN_KEY = 'som-token'
 let memoryToken = null
 export const auth = {
@@ -41,4 +42,16 @@ export async function api(path, body) {
     throw err
   }
   return res.json()
+}
+
+// a fresh anonymous session from the backend
+export async function newSession() {
+  const r = await api('/session', {})
+  auth.set(r.token)
+  return r.token
+}
+
+// use the saved session, or start one
+export async function ensureSession() {
+  return auth.get() ?? newSession()
 }

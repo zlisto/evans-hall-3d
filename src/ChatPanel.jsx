@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { api } from './talk.js'
+import { api, ensureSession, newSession } from './talk.js'
 
 const TOOL_LABELS = {
   search_courses: 'searched the course catalog',
@@ -42,7 +42,7 @@ function Rich({ text }) {
   )
 }
 
-export default function ChatPanel({ slug, name, onClose, onAuthLost }) {
+export default function ChatPanel({ slug, name, onClose }) {
   const saved = memory.get(slug)
   const [profile, setProfile] = useState(saved?.profile ?? null)
   const [messages, setMessages] = useState(saved?.messages ?? [])
@@ -73,10 +73,11 @@ export default function ChatPanel({ slug, name, onClose, onAuthLost }) {
   }, [slug, profile, last])
 
   useEffect(() => {
-    api('/auth/me')
-      .then((m) => setUsage({ spent: m.spent_usd, limit: m.limit_usd }))
-      .catch((err) => err.status === 401 && onAuthLost()) // login expired: back to the home page
-  }, [onAuthLost])
+    const load = () => api('/usage').then((m) => setUsage({ spent: m.spent_usd, limit: m.limit_usd }))
+    ensureSession()
+      .then(load)
+      .catch((err) => err.status === 401 && newSession().then(load).catch(() => {})) // expired: start a new one
+  }, [])
   const limitHit = usage !== null && usage.spent >= usage.limit
 
   useEffect(() => {
@@ -97,13 +98,15 @@ export default function ChatPanel({ slug, name, onClose, onAuthLost }) {
     setMessages((m) => [...m, { role: 'me', text }])
     setBusy(true)
     try {
-      const r = await api(`/professors/${slug}/chat`, { message: text, session_id: sessionId })
+      const ask = () => api(`/professors/${slug}/chat`, { message: text, session_id: sessionId })
+      await ensureSession()
+      // an expired session gets replaced once, quietly
+      const r = await ask().catch((err) => (err.status === 401 ? newSession().then(ask) : Promise.reject(err)))
       setSessionId(r.session_id)
       setOffline(false)
       setMessages((m) => [...m, { role: 'prof', text: r.reply, tools: [...new Set(r.tools_used)] }])
       setUsage({ spent: r.spent_usd, limit: r.limit_usd })
     } catch (err) {
-      if (err.status === 401) return onAuthLost() // login expired: back to the home page
       if (err.status === 402) {
         setInput(text)
         setMessages((m) => m.slice(0, -1))

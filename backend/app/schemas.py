@@ -24,15 +24,9 @@ class ChatReply(BaseModel):
     reply: str
     session_id: str
     tools_used: list[str]
-    spent_usd: float  # this login session's running AI cost
+    spent_usd: float  # this visitor session's running AI cost
     limit_usd: float
 
 
-class LoginRequest(BaseModel):
-    email: str = Field(min_length=3, max_length=254)
-    password: str = Field(min_length=1, max_length=256)
-
-
-class LoginReply(BaseModel):
+class SessionReply(BaseModel):
     token: str
-    email: str

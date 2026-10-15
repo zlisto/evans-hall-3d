@@ -10,7 +10,7 @@ import Schedule from './Schedule.jsx'
 import { TALKER_NAMES } from './Faculty.jsx'
 import { EYE, SPAWN } from './layout.js'
 
-export default function App({ onLogout }) {
+export default function App({ onExit }) {
   const [locked, setLocked] = useState(false)
   const [where, setWhere] = useState('')
   const [showMap, setShowMap] = useState(true)
@@ -76,7 +76,7 @@ export default function App({ onLogout }) {
           )}
         </div>
       )}
-      {chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} onAuthLost={onLogout} />}
+      {chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} />}
 
       <div className="where">
         <span className="dot" />
@@ -134,10 +134,10 @@ export default function App({ onLogout }) {
               className="logout"
               onClick={(e) => {
                 e.stopPropagation()
-                onLogout()
+                onExit()
               }}
             >
-              Log out
+              Back to Handsome Dan
             </button>
           </div>
         </div>

@@ -15,11 +15,14 @@ Then run the frontend (`npm run dev` in the repo root). Vite forwards `/api` to 
 
 Put `PORTKEY_API_KEY` in a `.env` file in `backend/` or any folder above it (see `.env.example`). `OPENAI_MODEL` defaults to `gpt-6-luna`.
 
-## Login and spend limit
+## Visitor sessions and spend limits
 
-- `AUTH_EMAIL` / `AUTH_PASSWORD`: the one login allowed to chat. At startup it's hashed (scrypt, salted) into a `users` table in `backend/state.db` (local runtime state, gitignored). With no `AUTH_EMAIL`, nobody can chat.
-- `AUTH_SECRET`: signs login tokens. Set it to a long random string, or logins reset whenever the server restarts.
-- `SPEND_LIMIT_USD` (default `0.10`): AI spend allowed per login session, priced from gpt-6-luna's per-token rates in `app/spend.py`. Past it, chat returns "Free Tier Limit Reached". Spend is stored in a `chat_sessions` table in `backend/state.db`.
+There's no login. When someone enters the building, the frontend gets an anonymous session from `POST /api/session` (a signed token with a random id). Chat requires it.
+
+- `SPEND_LIMIT_USD` (default `0.10`): AI spend allowed per visitor session, priced from gpt-6-luna's per-token rates in `app/spend.py`. Past it, chat says "Free Tier Limit Reached".
+- `DAILY_LIMIT_USD` (default `2.00`): AI spend allowed per day across all visitors, so nobody can drain the budget by opening new sessions. Past it, chat says the professors are done for today.
+- `AUTH_SECRET`: signs session tokens. Set it to a long random string, or sessions reset whenever the server restarts.
+- New sessions are rate-limited per IP (20 an hour). Spend is stored in `backend/state.db` (local runtime state, gitignored).
 
 ## Researched professor profiles
 
@@ -33,9 +36,9 @@ Room assignments for the 3D building live in `data/room_assignments.json`.
 
 ## Layout
 
-- `app/main.py`: API routes: `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/professors`, `GET /api/professors/{slug}`, `POST /api/professors/{slug}/chat` (login required)
-- `app/auth.py`: users table, password hashing, signed tokens
-- `app/spend.py`: token prices and per-session spend tracking
+- `app/main.py`: API routes: `POST /api/session`, `GET /api/usage`, `GET /api/avatars`, `GET /api/professors`, `GET /api/professors/{slug}`, `POST /api/professors/{slug}/chat` (session required)
+- `app/auth.py`: anonymous visitor sessions (signed tokens)
+- `app/spend.py`: token prices, per-session and daily spend tracking
 - `app/agents.py`: builds one agent per professor (Portkey → OpenAI Responses API)
 - `app/tools.py`: `search_courses`, `get_course`, `courses_by_professor`, `courses_by_schedule`
 - `app/db.py`: read-only SQLite queries

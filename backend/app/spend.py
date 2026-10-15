@@ -1,4 +1,5 @@
-"""Dollar spend per login session, kept in a `chat_sessions` table. Chat stops at SPEND_LIMIT_USD."""
+"""AI spend per visitor session (`chat_sessions`) and per day across everyone (`daily_spend`).
+Chat stops at SPEND_LIMIT_USD for a session, or DAILY_LIMIT_USD for the whole site."""
 
 from __future__ import annotations
 
@@ -15,6 +16,8 @@ PRICES = {
 }
 LIMIT_USD = float(os.getenv("SPEND_LIMIT_USD") or 0.10)
 LIMIT_MESSAGE = "Free Tier Limit Reached"
+DAILY_LIMIT_USD = float(os.getenv("DAILY_LIMIT_USD") or 2.0)
+DAILY_MESSAGE = "The professors are done for today. Come back tomorrow!"
 
 
 def cost_of(usage: RunUsage, model: str = MODEL_NAME) -> float:
@@ -47,6 +50,13 @@ def setup() -> None:
                  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
                )"""
         )
+        con.execute("CREATE TABLE IF NOT EXISTS daily_spend (day TEXT PRIMARY KEY, spent_usd REAL NOT NULL DEFAULT 0)")
+
+
+def spent_today() -> float:
+    with _connect() as con:
+        row = con.execute("SELECT spent_usd FROM daily_spend WHERE day = date('now')").fetchone()
+    return row[0] if row else 0.0
 
 
 def spent(session_id: str) -> float:
@@ -66,5 +76,10 @@ def add(session_id: str, email: str, usage: RunUsage) -> float:
                  output_tokens = output_tokens + excluded.output_tokens,
                  updated_at = datetime('now')""",
             (session_id, email, cost_of(usage), usage.input_tokens, usage.output_tokens),
+        )
+        con.execute(
+            """INSERT INTO daily_spend (day, spent_usd) VALUES (date('now'), ?)
+               ON CONFLICT(day) DO UPDATE SET spent_usd = spent_usd + excluded.spent_usd""",
+            (cost_of(usage),),
         )
     return spent(session_id)

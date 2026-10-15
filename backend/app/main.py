@@ -19,7 +19,7 @@ from pydantic_ai.messages import ModelMessage, ModelResponse, ToolCallPart
 from . import auth, db, spend
 from .agents import agent_for, load_style
 from .config import CORS_ORIGINS, MODEL_NAME
-from .schemas import ChatReply, ChatRequest, LoginReply, LoginRequest, ProfessorProfile, ProfessorSummary
+from .schemas import ChatReply, ChatRequest, ProfessorProfile, ProfessorSummary, SessionReply
 
 log = logging.getLogger("som")
 
@@ -33,7 +33,7 @@ def _key_fingerprint() -> str:
 
 
 print(f"[startup] model={MODEL_NAME} | PORTKEY_API_KEY: {_key_fingerprint()} | PORTKEY_VIRTUAL_KEY: {'set' if os.getenv('PORTKEY_VIRTUAL_KEY') else 'not set'}", flush=True)
-print(f"[startup] {auth.setup_users()} | spend limit ${spend.LIMIT_USD:g} per login session", flush=True)
+print(f"[startup] {auth.status()} | spend limit ${spend.LIMIT_USD:g} per session, ${spend.DAILY_LIMIT_USD:g} per day", flush=True)
 spend.setup()
 
 app = FastAPI(title="Yale SOM Virtual: professor agents")
@@ -41,7 +41,7 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["G
 
 MAX_TURNS = 10  # chat turns of history kept per conversation
 MAX_SESSIONS = 500
-# (email, slug, session_id) -> list of turns; each turn is that run's new messages (tool calls stay paired)
+# (visitor session, slug, chat id) -> list of turns; each turn is that run's new messages (tool calls stay paired)
 sessions: OrderedDict[tuple[str, str, str], list[list[ModelMessage]]] = OrderedDict()
 
 
@@ -88,16 +88,17 @@ def get_professor(slug: str) -> dict:
     return {**_summary(slug, faculty), "greeting": greeting, "rooms": rooms}
 
 
-@app.post("/api/auth/login", response_model=LoginReply)
-def login(req: LoginRequest, request: Request) -> dict:
-    # Render sits behind a proxy, so the caller's IP is the first X-Forwarded-For entry
+@app.post("/api/session", response_model=SessionReply)
+def new_session(request: Request) -> dict:
+    """A fresh anonymous visitor session (no login). Render sits behind a proxy, so the caller's IP is
+    the first X-Forwarded-For entry."""
     ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
-    return {"token": auth.check_login(req.email, req.password, ip), "email": req.email.strip().lower()}
+    return {"token": auth.new_session(ip)}
 
 
-@app.get("/api/auth/me")
-def me(user: auth.User = Depends(auth.current_user)) -> dict:
-    return {"email": user.email, "spent_usd": spend.spent(user.session_id), "limit_usd": spend.LIMIT_USD}
+@app.get("/api/usage")
+def usage(user: auth.User = Depends(auth.current_user)) -> dict:
+    return {"spent_usd": spend.spent(user.session_id), "limit_usd": spend.LIMIT_USD}
 
 
 @app.post("/api/professors/{slug}/chat", response_model=ChatReply)
@@ -105,8 +106,10 @@ async def chat(slug: str, req: ChatRequest, user: auth.User = Depends(auth.curre
     _faculty(slug)
     if spend.spent(user.session_id) >= spend.LIMIT_USD:
         raise HTTPException(402, spend.LIMIT_MESSAGE)
+    if spend.spent_today() >= spend.DAILY_LIMIT_USD:
+        raise HTTPException(402, spend.DAILY_MESSAGE)
     sid = req.session_id or uuid.uuid4().hex
-    key = (user.email, slug, sid)
+    key = (user.session_id, slug, sid)
     turns = sessions.pop(key, [])
     history = [m for turn in turns for m in turn]
     try:
