@@ -9,6 +9,7 @@ import ChatPanel from './ChatPanel.jsx'
 import Schedule from './Schedule.jsx'
 import { TALKER_NAMES } from './Faculty.jsx'
 import { EYE, SPAWN } from './layout.js'
+import { onIdentity, presence } from './mvw.js'
 
 export default function App({ onExit }) {
   const [locked, setLocked] = useState(false)
@@ -42,6 +43,20 @@ export default function App({ onExit }) {
       setChat(null)
       if (resume && !touchRef.current.active) lockRef.current?.() // ✕ button click: jump straight back in
     },
+    [],
+  )
+  // Metaverse Web: tell the Metaverse Browser where you are, and greet you by the name it sends
+  useEffect(() => {
+    if (where) presence(`Yale SOM · ${where}`)
+  }, [where])
+  const [hello, setHello] = useState(null)
+  useEffect(
+    () =>
+      onIdentity(({ name, color }) => {
+        if (!name) return
+        setHello({ name: String(name).slice(0, 40), color: /^#[0-9a-f]{3,8}$/i.test(color ?? '') ? color : null })
+        setTimeout(() => setHello(null), 6000)
+      }),
     [],
   )
   useEffect(() => {
@@ -82,6 +97,11 @@ export default function App({ onExit }) {
         <span className="dot" />
         {where}
       </div>
+      {hello && (
+        <div className="mvw-hello" style={hello.color ? { borderColor: hello.color } : undefined}>
+          Welcome to Yale SOM, <b>{hello.name}</b>!
+        </div>
+      )}
       <div className={showMap ? 'mapwrap' : 'mapwrap hidden'}>
         <Minimap drawRef={mapRef} />
       </div>

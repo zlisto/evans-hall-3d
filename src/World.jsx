@@ -1,9 +1,9 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import {
-  H, K, EAST, BOUNDS, COURTYARD, DRUMS, DRUM_WALL, WALLS, CHAIRS, SCREENS, BOARDS, LECTERNS,
+  H, K, EYE, EAST, BOUNDS, COURTYARD, DRUMS, DRUM_WALL, WALLS, CHAIRS, SCREENS, BOARDS, LECTERNS,
   STAIRS, MEETING, MEET_DOOR, BEIN, BEIN_TABLES, PLANTS, LIBRARY, RISE, TOWER_R, inPoly, ellPt, tierOutline,
 } from './layout.js'
 import { ELEV4 } from './floor4.js'
@@ -13,6 +13,9 @@ import { ELEV1 } from './floor1.js'
 import SpiralTowers from './SpiralTowers.jsx'
 import * as T from './textures.js'
 import { MeetingLabubus } from './LabubuParty.jsx'
+import Portal from './Portal.jsx'
+import { MY_ID, PORTAL, SQUARE } from './metaverse.js'
+import { levelOf } from './levels.js'
 import LabubuCrowd from './LabubuCrowd.jsx'
 import LabubuWalkers from './LabubuWalkers.jsx'
 import Faculty from './Faculty.jsx'
@@ -529,6 +532,17 @@ function Details({ M }) {
   )
 }
 
+// ---------- portal to Metaverse Square (mvw/0.1), only live while you're on floor 2: the floors
+// above and below share its x/z, and the portal only checks how high you are, not which floor
+function SquarePortal() {
+  const [here, setHere] = useState(true)
+  useFrame(({ camera }) => {
+    const on2 = levelOf(camera.position.y - EYE) === 2
+    if (on2 !== here) setHere(on2)
+  })
+  return here ? <Portal {...PORTAL} href={SQUARE} spawn={`by_${MY_ID}`} back="from_square" label="Metaverse Square" /> : null
+}
+
 export default function World({ talkingTo, onTalk }) {
   const M = useMaterials()
   return (
@@ -549,6 +563,7 @@ export default function World({ talkingTo, onTalk }) {
       <Faculty talkingTo={talkingTo} onTalk={onTalk} />
       <HandsomeDan />
       <SpiralTowers M={M} />
+      <SquarePortal />
       <Floor1 M={M} />
       <Floor4 M={M} />
     </>

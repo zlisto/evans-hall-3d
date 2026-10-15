@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
-import { EYE, MAX_STEP, SPAWN } from './layout.js'
+import { EYE, MAX_STEP } from './layout.js'
+import { SPAWNS } from './metaverse.js'
+import { pickSpawn } from './mvw.js'
 import { collide, floorAt, levelOf, locate } from './levels.js'
 
 const CROUCH_EYE = 1.05
@@ -26,8 +28,9 @@ export default function Player({ lockRef, mapRef, touchRef, onLock, onWhere }) {
   const euler = useMemo(() => new THREE.Euler(0, 0, 0, 'YXZ'), [])
 
   useEffect(() => {
-    camera.position.set(SPAWN.x, EYE, SPAWN.z)
-    camera.rotation.set(0, 0, 0)
+    const start = pickSpawn(SPAWNS) // ?spawn=<id> from the Metaverse Web, else the default
+    camera.position.set(start.x, EYE, start.z)
+    camera.rotation.set(0, start.yaw, 0)
     lockRef.current = () => controls.lock()
     const on = () => onLock(true)
     const off = () => {

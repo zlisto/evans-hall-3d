@@ -1,0 +1,18 @@
+{
+  "protocol": "mvw/0.1",
+  "name": "Yale SOM · Evans Hall",
+  "description": "Yale School of Management's Evans Hall on three floors: round classrooms where AI avatars of real professors teach (click one to chat), Labubu students, glass meeting rooms, spiral stairs, a café and a courtyard. Every professor here is an AI avatar, not the real person.",
+  "spawns": {
+    "default": "Floor 2, southwest corner of the cloister by the Class of 1980 classroom, facing north along the hallway",
+    "from_square": "Floor 2, west cloister, just in front of the Metaverse Square portal by the Ross Library glass, facing east into the building"
+  },
+  "portals": [
+    {
+      "id": "to_square",
+      "label": "Metaverse Square",
+      "href": "https://zlisto.github.io/hub_world/",
+      "spawn": "by_evans_hall_3d",
+      "where": "Floor 2, west cloister, a glowing pink doorway against the Ross Library glass"
+    }
+  ]
+}
