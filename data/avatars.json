@@ -153,6 +153,31 @@
   "accessory": "tie",
   "accessoryColor": "#5a1f2b"
  },
+ "song-ma": {
+  "skin": "#ecc6a4",
+  "hair": {
+   "color": "#141414",
+   "style": "short"
+  },
+  "beard": null,
+  "glasses": {
+   "color": "#8a8f96",
+   "shape": "rect"
+  },
+  "top": {
+   "type": "blazer",
+   "color": "#1c2236",
+   "inner": "#eef2f8"
+  },
+  "bottom": "pants",
+  "pants": "#1c2236",
+  "shoes": "#141210",
+  "height": 1.76,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": "tie",
+  "accessoryColor": "#24366e"
+ },
  "stefano-giglio": {
   "skin": "#e9c3a3",
   "hair": {
