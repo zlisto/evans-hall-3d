@@ -1,11 +1,22 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { api, ensureSession, newSession } from './talk.js'
+import GREETINGS from '../data/greetings.json'
+import { ASSIGNMENTS } from './rooms.js'
 
 const TOOL_LABELS = {
   search_courses: 'searched the course catalog',
   get_course: 'pulled up course details',
   courses_by_professor: "looked up a colleague's classes",
   courses_by_schedule: 'checked the class schedule',
+}
+
+// what a professor says when the backend is offline: their saved greeting, or a plain intro built from
+// the room list. Always says it's an AI avatar.
+function introFor(slug, name) {
+  if (GREETINGS[slug]) return GREETINGS[slug]
+  const a = ASSIGNMENTS.find((x) => x.slug === slug)
+  const course = a ? ` I teach ${a.course} ${a.title} here in Evans ${a.room}.` : ''
+  return `Hi! I'm an AI avatar of Professor ${name}.${course}`
 }
 
 // conversations survive closing and reopening the window (until the page reloads)
@@ -64,13 +75,16 @@ export default function ChatPanel({ slug, name, onClose }) {
     api(`/professors/${slug}`)
       .then((p) => {
         setProfile(p)
-        setMessages((m) => (m.some((x) => x.role !== 'system') ? m : [{ role: 'prof', text: p.greeting }])) // drop old "offline" notes
+        setMessages((m) => (m.some((x) => x.role !== 'system' && !x.offline) ? m : [{ role: 'prof', text: p.greeting }])) // drop old "offline" notes
       })
       .catch(() => {
         setOffline(true)
-        setMessages([{ role: 'system', text: `Prof. ${last}'s AI brain isn't running right now. Start the backend (see backend/README.md) and try again.` }])
+        setMessages([
+          { role: 'prof', text: introFor(slug, name), offline: true },
+          { role: 'system', text: `Prof. ${last}'s AI brain is offline right now, so that's a recorded intro. Chat comes back when the backend is running.` },
+        ])
       })
-  }, [slug, profile, last])
+  }, [slug, profile, last, name])
 
   useEffect(() => {
     const load = () => api('/usage').then((m) => setUsage({ spent: m.spent_usd, limit: m.limit_usd }))

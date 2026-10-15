@@ -62,6 +62,24 @@ def export_avatars() -> None:
     out = DB.parent / "avatars.json"
     out.write_text(json.dumps(looks, indent=1) + "\n", encoding="utf-8")
     print(f"exported {len(looks)} looks to {out.name}")
+    export_greetings()
+
+
+def export_greetings() -> None:
+    """Write every professor's greeting to data/greetings.json, so they still introduce themselves when
+    the backend is offline (GitHub Pages). Hand-written style files (app/styles/*.md) count too."""
+    greet = {}
+    for f in sorted((Path(__file__).resolve().parents[1] / "app" / "styles").glob("*.md")):
+        first = f.read_text(encoding="utf-8").splitlines()[0]
+        if first.startswith("greeting:"):
+            greet[f.stem] = first.split(":", 1)[1].strip()
+    with sqlite3.connect(DB) as con:
+        for slug, g in con.execute("SELECT slug, greeting FROM professor_profiles ORDER BY slug"):
+            if g:
+                greet[slug] = g
+    out = DB.parent / "greetings.json"
+    out.write_text(json.dumps(greet, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"exported {len(greet)} greetings to {out.name}")
 
 
 if __name__ == "__main__":
