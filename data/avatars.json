@@ -90,6 +90,27 @@
   "accessory": "tie",
   "accessoryColor": "#2c3a66"
  },
+ "katja-seim": {
+  "skin": "#f0cdb4",
+  "hair": {
+   "color": "#8a5a3a",
+   "style": "bob"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "sweater",
+   "color": "#1c2238",
+   "inner": "#1c2238"
+  },
+  "bottom": "pants",
+  "pants": "#1c2238",
+  "shoes": "#141210",
+  "height": 1.67,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": null
+ },
  "mushfiq-mobarak": {
   "skin": "#c08a64",
   "hair": {
