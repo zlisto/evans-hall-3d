@@ -5,7 +5,7 @@ import { B, BOX, CAP, CYL, SPH, m, useTalker } from './avatar.js'
 // One avatar for any professor, built from an `appearance` object (professor_profiles.appearance in the
 // DB, served by /api/avatars). Every field is optional:
 //   skin       CSS color
-//   hair       { color, style: 'swept' | 'short' | 'wavy' | 'curly' | 'curlyLong' | 'long' | 'bun' | 'bald' }
+//   hair       { color, style: 'swept' | 'short' | 'wavy' | 'curly' | 'curlyLong' | 'long' | 'bob' | 'bun' | 'bald' }
 //   beard      null | 'stubble' | 'short' | 'full' | 'mustache'   (+ beardColor, defaults to hair color)
 //   glasses    null | { color, shape: 'rect' | 'round' }
 //   top        { type: 'blazer' | 'shirt' | 'sweater' | 'hoodie', color, inner }  (inner = shirt under blazer/sweater)
@@ -88,6 +88,17 @@ function Hair({ style, color }) {
               <mesh geometry={CAP} material={m(color)} position={[0.095 * sx, -0.12, 0.035]} rotation={[0.25, 0, 0.12 * sx]} scale={[0.03, 0.06, 0.035]} />
               <B c={color} p={[0.05 * sx, 0.165, 0.07]} r={[0.5, 0, 0.35 * sx]} s={[0.07, 0.03, 0.05]} />
             </group>
+          ))}
+        </>
+      )
+    case 'bob': // chin-length: full crown, side-swept fringe, sides ending at the jaw
+      return (
+        <>
+          <B c={color} p={[0, 0.12, -0.015]} s={[0.124, 0.095, 0.128]} />
+          <B c={color} p={[0, 0.04, -0.05]} s={[0.127, 0.12, 0.09]} />
+          <B c={color} p={[0.035, 0.17, 0.075]} r={[0.45, 0, -0.3]} s={[0.085, 0.032, 0.05]} />
+          {[-1, 1].map((sx) => (
+            <mesh key={sx} geometry={CAP} material={m(color)} position={[0.108 * sx, 0.01, 0.01]} rotation={[0.1, 0, -0.08 * sx]} scale={[0.036, 0.075, 0.06]} />
           ))}
         </>
       )
