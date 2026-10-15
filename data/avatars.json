@@ -174,6 +174,29 @@
   "accessory": "tie",
   "accessoryColor": "#5a1f2b"
  },
+ "seth-zimmerman": {
+  "skin": "#e6bc9c",
+  "hair": {
+   "color": "#3a2a20",
+   "style": "bald"
+  },
+  "beard": "short",
+  "beardColor": "#3a2a20",
+  "glasses": null,
+  "top": {
+   "type": "blazer",
+   "color": "#22305a",
+   "inner": "#e8e6f2"
+  },
+  "bottom": "pants",
+  "pants": "#22283a",
+  "shoes": "#141210",
+  "height": 1.8,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": "tie",
+  "accessoryColor": "#6a2238"
+ },
  "song-ma": {
   "skin": "#ecc6a4",
   "hair": {
