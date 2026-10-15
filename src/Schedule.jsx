@@ -1,9 +1,33 @@
+import { useEffect, useRef } from 'react'
 import { ASSIGNMENTS } from './rooms.js'
 
 // "Who teaches where": every room with a real course, grouped by floor. The room you're standing in
 // is highlighted (its number is at the end of the location label, e.g. "Farr Classroom · 4420").
 export default function Schedule({ where, onClose }) {
   const here = where.match(/(\d{4})$/)?.[1]
+  const body = useRef(null)
+  // While you're looking around, the mouse is locked to the game, so the wheel never reaches the list.
+  // Catch it (and PageUp/PageDown) anywhere and scroll the schedule instead, no need to free the mouse.
+  useEffect(() => {
+    const el = body.current
+    const onWheel = (e) => {
+      if (el.contains(e.target)) return // mouse is free and over the list: let it scroll normally
+      el.scrollBy({ top: e.deltaY * (e.deltaMode === 1 ? 32 : 1) })
+      e.preventDefault()
+    }
+    const onKey = (e) => {
+      if (e.code === 'PageDown' || e.code === 'PageUp') {
+        el.scrollBy({ top: (e.code === 'PageDown' ? 1 : -1) * Math.max(el.clientHeight * 0.85, 300) })
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [])
   const floors = [2, 4].map((f) => ({ f, rooms: ASSIGNMENTS.filter((a) => a.floor === f).sort((a, b) => a.room.localeCompare(b.room)) }))
   return (
     <div className="schedule" role="dialog" aria-label="Class schedule">
@@ -16,7 +40,7 @@ export default function Schedule({ where, onClose }) {
           ✕
         </button>
       </header>
-      <div className="schedule-body">
+      <div className="schedule-body" ref={body}>
         {floors.map(({ f, rooms }) => (
           <section key={f}>
             <h3>Floor {f}</h3>
@@ -37,7 +61,7 @@ export default function Schedule({ where, onClose }) {
             })}
           </section>
         ))}
-        <p className="snote">Take the spiral stairs (A or B, west side) up to floor 4. Press T to close.</p>
+        <p className="snote">Take the spiral stairs (A or B, west side) up to floor 4. Scroll with the mouse wheel. Press T to close.</p>
       </div>
     </div>
   )
