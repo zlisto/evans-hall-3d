@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { BEIN, BOUNDS, COURTYARD, DRUMS, LIBRARY, MEETING, STAIRS, TOWER_R, arc } from './layout.js'
-import { DRUMS4, READING } from './floor4.js'
+import { BEIN, BOUNDS, COURTYARD, DRUMS, K, LIBRARY, MEETING, MEET_FRONT, M_X0, M_X1, STAIRS, TOWER_R, arc } from './layout.js'
+import { DRUMS4, MEETING4, READING } from './floor4.js'
 import { CAFE, FORUM, KITCHEN, SUITES, SUITE_Z } from './floor1.js'
 import { DAN } from './HandsomeDan.jsx'
 
@@ -9,7 +9,7 @@ const X0 = BOUNDS.xMin - PAD
 const X1 = BOUNDS.xMax + BEIN.terrace + PAD
 const Z0 = BOUNDS.zMin - PAD
 const Z1 = BOUNDS.zMax + PAD
-const S = 2.6 // px per meter
+const S = 2.6 / K // px per meter (same map size as before the plan spread)
 const Wpx = Math.round((X1 - X0) * S)
 const Hpx = Math.round((Z1 - Z0) * S)
 const px = (x, z) => [(x - X0) * S, (z - Z0) * S]
@@ -60,16 +60,16 @@ function drawFloor1(g, path) {
   }
   g.fillStyle = '#26262e'
   g.fillRect(...px(KITCHEN.x0, KITCHEN.z0), (KITCHEN.x1 - KITCHEN.x0) * S, (KITCHEN.z1 - KITCHEN.z0) * S)
-  g.fillRect(...px(-35, 44.3), 57.6 * S, (BOUNDS.zMax - 44.3) * S)
-  g.fillRect(...px(-35, BOUNDS.zMin), 57.6 * S, (-45.3 - BOUNDS.zMin) * S)
+  g.fillRect(...px(M_X0, 44.3 * K), (M_X1 - M_X0) * S, (BOUNDS.zMax - 44.3 * K) * S)
+  g.fillRect(...px(M_X0, BOUNDS.zMin), (M_X1 - M_X0) * S, (-45.3 * K - BOUNDS.zMin) * S)
   g.fillRect(...px(SUITES[0].x0, SUITE_Z[0]), (SUITES[3].x1 - SUITES[0].x0) * S, (SUITE_Z[1] - SUITE_Z[0]) * S)
   g.fillStyle = '#ffd6ea'
   g.font = '9px system-ui, sans-serif'
   g.fillText('CAFÉ', ...px(CAFE.c[0] - 2.5, CAFE.c[1] + 1))
   g.fillText('FORUM', ...px(FORUM.c[0] - 3, FORUM.c[1] + 1))
-  g.fillText("CHARLEY'S", ...px(-15, -33))
+  g.fillText("CHARLEY'S", ...px(-15 * K, -33 * K))
   g.fillText('COURTYARD', ...px(-7, 1))
-  g.fillText('LOBBY', ...px(-39, 1))
+  g.fillText('LOBBY', ...px(BOUNDS.xMin + 1.5, 1))
   g.fillText('AUDITORIUM', ...px(BEIN.c[0] + 0.5, 1))
   g.fillText('N ↑', ...px(BOUNDS.xMax + 6, BOUNDS.zMin + 2))
 }
@@ -127,11 +127,8 @@ function drawStatic(g, level) {
   g.fillStyle = '#3b2a1c'
   g.fillRect(...px(LIBRARY.x0, LIBRARY.z0), (LIBRARY.x1 - LIBRARY.x0) * S, (LIBRARY.z1 - LIBRARY.z0) * S)
   g.fillStyle = '#26262e'
-  if (level === 2) for (const m of MEETING) g.fillRect(...px(m.x - 2.6, m.z - 2.8), 5.2 * S, 5.6 * S)
-  else {
-    g.fillRect(...px(-35, 44.3), 57.6 * S, (BOUNDS.zMax - 44.3) * S)
-    g.fillRect(...px(-35, BOUNDS.zMin), 57.6 * S, (-45.3 - BOUNDS.zMin) * S)
-  }
+  const depth = BOUNDS.zMax - MEET_FRONT
+  for (const m of level === 2 ? MEETING : MEETING4) g.fillRect(...px(m.x - m.w / 2 + 0.2, m.z - depth / 2 + 0.2), (m.w - 0.4) * S, (depth - 0.4) * S)
   drawStairs(g)
   g.fillStyle = '#ffd6ea'
   g.font = '9px system-ui, sans-serif'

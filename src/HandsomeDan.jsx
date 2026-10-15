@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { DRUMS, ellPt } from './layout.js'
+import { DRUMS, K, ellPt } from './layout.js'
 
 // Handsome Dan, Yale's bulldog. He tours a loop of 1000 randomly chosen classrooms:
 // walk the cloister to the next room, go in through a door, pause at the front, head back out.
@@ -17,7 +17,7 @@ const RING = Array.from({ length: 120 }, (_, i) => {
   const t = (i / 120) * Math.PI * 2
   const c = Math.cos(t)
   const s = Math.sin(t)
-  return [24.4 * Math.sign(c) * Math.pow(Math.abs(c), 1 / 3), 21.4 * Math.sign(s) * Math.pow(Math.abs(s), 1 / 3)]
+  return [24.4 * K * Math.sign(c) * Math.pow(Math.abs(c), 1 / 3), 21.4 * K * Math.sign(s) * Math.pow(Math.abs(s), 1 / 3)]
 })
 const nearestRing = (p) => {
   let best = 0

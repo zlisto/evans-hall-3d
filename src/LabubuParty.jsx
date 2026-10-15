@@ -1,9 +1,9 @@
 import Labubu, { EXPRESSIONS, TossBall, YALE_BLUE } from './Labubu.jsx'
-import { MEETING } from './layout.js'
+import { K, MEETING } from './layout.js'
 
 // Labubus playing on the courtyard lawn (ground floor, y = -5).
 // Courtyard trees stand at (-10,-9) (0,-11.5) (10,-8.5) (-12,3) (12,4) (-5,11) (7,11.5) (-2,1).
-const RING = { center: [-2, 1], radius: 3, speed: 0.9 }
+const RING = { center: [-2 * K, 1 * K], radius: 3, speed: 0.9 }
 const RING_GAP = (Math.PI * 2) / RING.speed / 4 // four friends evenly spaced around the tree
 
 const CREW = [
@@ -33,9 +33,9 @@ export default function LabubuParty({ y = -5, height = 1.3 }) {
   return (
     <group position={[0, y, 0]}>
       {CREW.map((c, i) => (
-        <Labubu key={i} height={(c.height ?? 1) * height} phase={c.phase ?? i * 0.37} {...c} />
+        <Labubu key={i} height={(c.height ?? 1) * height} phase={c.phase ?? i * 0.37} {...c} position={c.position && [c.position[0] * K, c.position[1], c.position[2] * K]} />
       ))}
-      <TossBall from={[7, -1]} to={[11.5, -1]} height={height} />
+      <TossBall from={[7 * K, -1 * K]} to={[11.5 * K, -1 * K]} height={height} />
     </group>
   )
 }
@@ -49,8 +49,8 @@ function rand(seed) {
   return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296
 }
 const SEAT_Y = 0.51 // chair seat top
-const MEETERS = MEETING.flatMap((m, i) => {
-  const r = rand(1000 + i * 7919)
+const meeters = (rooms, seed) => rooms.flatMap((m, i) => {
+  const r = rand(seed + i * 7919)
   const pick = (arr) => arr[Math.floor(r() * arr.length)]
   const seats = [...m.seats].sort(() => r() - 0.5).slice(0, 2 + Math.floor(r() * 2))
   return seats.map((c, k) => ({
@@ -67,6 +67,8 @@ const MEETERS = MEETING.flatMap((m, i) => {
   }))
 })
 
-export function MeetingLabubus() {
-  return MEETERS.map(({ key, ...c }) => <Labubu key={key} sitting {...c} />)
+const MEETERS = new Map()
+export function MeetingLabubus({ rooms = MEETING, seed = 1000 }) {
+  if (!MEETERS.has(rooms)) MEETERS.set(rooms, meeters(rooms, seed))
+  return MEETERS.get(rooms).map(({ key, ...c }) => <Labubu key={key} sitting {...c} />)
 }

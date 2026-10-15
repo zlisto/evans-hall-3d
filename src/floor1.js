@@ -8,7 +8,7 @@
 //   N   Charley's Place 1220 servery + Retail Kitchen 1260, dining area, offices 12xx, Stair D (NE)
 //   S   Ligon-Lamsam Student Commons 1425, Welcome Center 1415, Student Lounge 1440, atrium, offices 15xx
 
-import { BOUNDS, COLLIDERS, COURTYARD, EAST, H, STAIRS, TOWER_R, arc, boxed } from './layout.js'
+import { BOUNDS, COLLIDERS, COURTYARD, EAST, H, K, M_X0, M_X1, STAIRS, TOWER_R, arc, boxed, sc, spread } from './layout.js'
 
 export const ELEV1 = -H
 
@@ -42,7 +42,7 @@ W([EAST, zMin], [EAST, zMax], 'white')
 
 // ---------- courtyard glass with doors out to the terrace (north pair by Charley's, south pair by the Commons)
 const DOOR_W = 1.8
-const doorTargets = [[-6, -20], [7, -20], [-6, 20], [7, 20]]
+const doorTargets = [[-6, -20], [7, -20], [-6, 20], [7, 20]].map(sc)
 export const COURT_DOORS = doorTargets.map(([tx, tz]) => {
   let best = 0
   COURTYARD.forEach((p, i) => {
@@ -78,13 +78,13 @@ const roomAt = (drumC, r, front, name, num, gapHalf) => {
   P(ring, 'none', { t: 0.12 })
   return { c: drumC, r, phi, gapHalf, name, num }
 }
-export const CAFE = roomAt([-31, -28.4], 7, [1, 1], 'McNay Café', '1200', 0.16)
-export const FORUM = roomAt([-31, 28.4], 7.5, [1, -1], 'Snyder Forum', '1400', 0.15)
+export const CAFE = roomAt(sc([-31, -28.4]), 7 * 1.2, [1, 1], 'McNay Café', '1200', 0.16)
+export const FORUM = roomAt(sc([-31, 28.4]), 7.5 * 1.2, [1, -1], 'Snyder Forum', '1400', 0.15)
 
 // café: curved wood counter with a glass pastry case, wire stools at high tables, an orange sofa
 export const CAFE_COUNTER = { c: [CAFE.c[0] + 1.2, CAFE.c[1] + 0.6], r: 2.2, a0: CAFE.phi - 1.2, a1: CAFE.phi + 1.6 }
 P(arc(CAFE_COUNTER.c, CAFE_COUNTER.r, CAFE_COUNTER.r, CAFE_COUNTER.a0, CAFE_COUNTER.a1, 20), 'none', { t: 0.7 })
-export const CAFE_TABLES = [[-35.5, -27], [-34, -31.5], [-30, -33.5], [-36, -23.5]].map(([x, z]) => ({ x, z }))
+export const CAFE_TABLES = [[-35.5, -27], [-34, -31.5], [-30, -33.5], [-36, -23.5]].map(sc).map(([x, z]) => ({ x, z }))
 for (const t of CAFE_TABLES) {
   dot([t.x, t.z], 0.75)
   for (let k = 0; k < 3; k++) {
@@ -92,12 +92,13 @@ for (const t of CAFE_TABLES) {
     CHAIRS1.push({ x: t.x + Math.sin(a) * 0.75, z: t.z + Math.cos(a) * 0.75, rot: a, kind: 'stool' })
   }
 }
-export const CAFE_SOFA = { a: [-33.6, -22.6], b: [-30.4, -21.9] }
+const [sofaA, sofaB] = spread([-33.6, -22.6], [-30.4, -21.9])
+export const CAFE_SOFA = { a: sofaA, b: sofaB }
 W(CAFE_SOFA.a, CAFE_SOFA.b, 'orange', { h: 0.55, t: 0.9 })
 
 // Snyder Forum: long wood tables with black chairs, glass all round
 export const FORUM_TABLES = []
-for (const [x, z] of [[-34, 26], [-34, 31], [-29.5, 33], [-30, 24.5]]) {
+for (const [x, z] of [[-34, 26], [-34, 31], [-29.5, 33], [-30, 24.5]].map(sc)) {
   FORUM_TABLES.push({ x, z })
   W([x - 1.2, z], [x + 1.2, z], 'none', { t: 0.9 })
   for (const dx of [-0.8, 0, 0.8]) for (const s of [-1, 1]) CHAIRS1.push({ x: x + dx, z: z + s * 0.75, rot: s > 0 ? 0 : Math.PI })
@@ -105,7 +106,7 @@ for (const [x, z] of [[-34, 26], [-34, 31], [-29.5, 33], [-30, 24.5]]) {
 
 // ---------- west lobby 1100: closed glass entrance doors, "Edward P. Evans Hall" wall
 W([ENTRANCE.x, ENTRANCE.z0], [ENTRANCE.x, ENTRANCE.z1], 'none', { t: 0.2 })
-export const LOBBY_WALL = { x: -29, z0: -4.5, z1: 4.5 } // dark name wall facing the entrance
+export const LOBBY_WALL = { x: -29 * K, z0: -4.5, z1: 4.5 } // dark name wall facing the entrance
 W([LOBBY_WALL.x, LOBBY_WALL.z0], [LOBBY_WALL.x, LOBBY_WALL.z1], 'darkPanel', { t: 0.4 })
 
 // ---------- north: offices 12xx along the wall, Retail Kitchen 1260 + Charley's Place 1220 servery
@@ -122,20 +123,21 @@ const officeRow = (zFront, zBack, x0, x1, n, numAt, side) => {
     OFFICE_DOORS1.push({ x: cx, z: zFront + side * 0.09, rot: side > 0 ? 0 : Math.PI, label: numAt(i) })
   }
 }
-officeRow(-45.3, zMin, -35, 22.6, 14, (i) => (i === 9 ? 'Men' : i === 10 ? 'Women' : i === 11 ? 'Elevator' : String(1251 + i * 2)), 1)
+officeRow(-45.3 * K, zMin, M_X0, M_X1, 16, (i) => (i === 9 ? 'Men' : i === 10 ? 'Women' : i === 11 ? 'Elevator' : String(1251 + i * 2)), 1)
 
-export const KITCHEN = { x0: -22, x1: -2, z0: -45.3, z1: -39.5 } // Retail Kitchen 1260 (staff only)
+export const KITCHEN = { x0: -22 * K, x1: -2 * K, z0: -45.3 * K, z1: -39.5 * K } // Retail Kitchen 1260 (staff only)
 P([[KITCHEN.x0, KITCHEN.z0], [KITCHEN.x0, KITCHEN.z1], [KITCHEN.x1, KITCHEN.z1], [KITCHEN.x1, KITCHEN.z0]], 'white')
 // the servery counter curves out in front of the kitchen
-export const SERVERY = { c: [-10, -44], r: 7.2, a0: -0.75, a1: 0.75 } // bulges out toward the diners
+export const SERVERY = { c: sc([-10, -44]), r: 7.2 * K, a0: -0.75, a1: 0.75 } // bulges out toward the diners
 P(arc(SERVERY.c, SERVERY.r, SERVERY.r, SERVERY.a0, SERVERY.a1, 24), 'none', { t: 0.75 })
 
 // dining area between Charley's and the courtyard: white round tables, black chairs, cognac banquette,
 // the rainbow-stripe painting, two wood notice-board kiosks, white columns
 export const DINING_TABLES = []
-for (const x of [-18, -13.5, -9, -4.5, 0, 4.5, 9]) {
-  for (const z of [-30.5, -26.5]) {
-    if (x < -15 && z < -29) continue // banquette corner
+for (const x0 of [-18, -13.5, -9, -4.5, 0, 4.5, 9]) {
+  for (const z0 of [-30.5, -26.5]) {
+    if (x0 < -15 && z0 < -29) continue // banquette corner
+    const [x, z] = sc([x0, z0])
     DINING_TABLES.push({ x, z })
     dot([x, z], 0.9)
     for (let k = 0; k < 4; k++) {
@@ -144,12 +146,12 @@ for (const x of [-18, -13.5, -9, -4.5, 0, 4.5, 9]) {
     }
   }
 }
-export const BANQUETTE = { a: [-25, -36], b: [-17.5, -36] }
-W([-25.5, -36.6], [-17, -36.6], 'white', { t: 0.3 }) // short wall behind the banquette (painting hangs here)
+export const BANQUETTE = { a: sc([-25, -36]), b: sc([-17.5, -36]) }
+W(sc([-25.5, -36.6]), sc([-17, -36.6]), 'white', { t: 0.3 }) // short wall behind the banquette (painting hangs here)
 W(BANQUETTE.a, BANQUETTE.b, 'leather', { h: 0.5, t: 0.7 })
-export const KIOSKS = [[0, -35.5], [7, -35.5]]
+export const KIOSKS = [[0, -35.5], [7, -35.5]].map(sc)
 for (const k of KIOSKS) dot(k, 1.2)
-export const COLUMNS1 = [[-20, -22.5], [-8, -22.5], [4, -22.5], [16, -22.5], [-20, 23], [-6, 23], [8, 23], [20, 23]]
+export const COLUMNS1 = [[-20, -22.5], [-8, -22.5], [4, -22.5], [16, -22.5], [-20, 23], [-6, 23], [8, 23], [20, 23]].map(sc)
 for (const c of COLUMNS1) dot(c, 0.6)
 
 // ---------- south: Student Commons lounge, glass-front suites, atrium hallway, offices 15xx
@@ -158,8 +160,8 @@ export const SUITES = [
   { x0: -12, x1: -2, name: 'Alumni Relations Suite', num: '1410' },
   { x0: -2, x1: 8, name: 'Student Lounge', num: '1440' },
   { x0: 8, x1: 18, name: 'Bass Study Suite', num: '1442' },
-]
-export const SUITE_Z = [31, 37.5] // glass fronts face north onto the Commons
+].map((st) => ({ ...st, x0: st.x0 * K, x1: st.x1 * K }))
+export const SUITE_Z = [31 * K, 37.5 * K] // glass fronts face north onto the Commons
 for (const s of SUITES) {
   W([s.x0, SUITE_Z[0]], [s.x1, SUITE_Z[0]], 'meetGlass', { t: 0.08 })
   W([s.x0, SUITE_Z[0]], [s.x0, SUITE_Z[1]], 'white', { t: 0.15 })
@@ -168,26 +170,26 @@ for (const s of SUITES) {
 W([SUITES[0].x0, SUITE_Z[1]], [SUITES[3].x1, SUITE_Z[1]], 'white', { t: 0.2 }) // atrium wall (photos hang on its south face)
 // Commons lounge: cognac leather armchairs + sofas around low tables, a row of black storage cabinets
 export const LOUNGE = []
-for (const [x, z] of [[-14, 25.5], [-6, 26.5], [2, 25.5], [10, 26.5]]) {
+for (const [x, z] of [[-14, 25.5], [-6, 26.5], [2, 25.5], [10, 26.5]].map(sc)) {
   LOUNGE.push({ x, z })
   W([x - 1.1, z + 1.2], [x + 1.1, z + 1.2], 'leather', { h: 0.45, t: 0.8 }) // sofa
   dot([x, z], 1.0) // low table
   for (const s of [-1, 1]) W([x + s * 1.6, z - 0.2], [x + s * 1.6 + 0.01, z - 0.2], 'leather', { h: 0.45, t: 0.8 }) // armchairs
 }
-W([14, 29.5], [19, 29.5], 'cabinet', { h: 1.5, t: 0.5 })
+W(...spread([14, 29.5], [19, 29.5]), 'cabinet', { h: 1.5, t: 0.5 })
 // atrium hallway (Bekenstein Atrium side): leather sofa and long tables
-W([-8, 41.3], [-4, 41.3], 'leather', { h: 0.45, t: 0.8 })
-W([2, 41.3], [6, 41.3], 'leather', { h: 0.45, t: 0.8 })
-officeRow(44.3, zMax, -35, 22.6, 14, (i) => (i === 8 ? 'Men' : i === 9 ? 'Women' : i === 10 ? 'Elevator' : String(1501 + i * 2)), -1)
+W(...spread([-8, 41.3], [-4, 41.3]), 'leather', { h: 0.45, t: 0.8 })
+W(...spread([2, 41.3], [6, 41.3]), 'leather', { h: 0.45, t: 0.8 })
+officeRow(44.3 * K, zMax, M_X0, M_X1, 16, (i) => (i === 8 ? 'Men' : i === 9 ? 'Women' : i === 10 ? 'Elevator' : String(1501 + i * 2)), -1)
 
 // ---------- east: Zhang Auditorium doors (locked), plants
 export const AUDITORIUM = { name: 'Zhang Auditorium', num: '1300', doors: [[EAST, -3.2], [EAST, 3.2]] }
-export const PLANTS1 = [[-24.5, -14], [-24.5, 14], [24, -14], [24, 14], [-27, 6.5], [-27, -6.5]]
+export const PLANTS1 = [[-24.5, -14], [-24.5, 14], [24, -14], [24, 14], [-27, 6.5], [-27, -6.5]].map(sc)
 for (const p of PLANTS1) dot(p)
 
 // ---------- the courtyard terrace: round tables + mesh chairs on the pavers, trees, lawn in the middle
 export const LAWN = COURTYARD.map(([x, z]) => [x * 0.5, z * 0.5])
-export const TERRACE_TABLES = [[-14, -11], [-9, -13.5], [-4, -14.5], [9, -13.5], [14, -10], [-14, 10], [-9, 13.5], [4, 14.5], [10, 13], [15, 9.5]]
+export const TERRACE_TABLES = [[-14, -11], [-9, -13.5], [-4, -14.5], [9, -13.5], [14, -10], [-14, 10], [-9, 13.5], [4, 14.5], [10, 13], [15, 9.5]].map(sc)
 for (const [x, z] of TERRACE_TABLES) {
   dot([x, z], 1.3)
   for (let k = 0; k < 4; k++) {
@@ -195,7 +197,7 @@ for (const [x, z] of TERRACE_TABLES) {
     CHAIRS1.push({ x: x + Math.sin(a) * 1.05, z: z + Math.cos(a) * 1.05, rot: a, kind: 'mesh' })
   }
 }
-export const COURT_TREES = [[-10, -9], [0, -11.5], [10, -8.5], [-12, 3], [12, 4], [-5, 11], [7, 11.5], [-2, 1]]
+export const COURT_TREES = [[-10, -9], [0, -11.5], [10, -8.5], [-12, 3], [12, 4], [-5, 11], [7, 11.5], [-2, 1]].map(sc)
 for (const t of COURT_TREES) dot(t, 0.45)
 
 // floor 1 colliders: its own walls + the stair cores that run the full height
@@ -211,10 +213,11 @@ const inPolyPts = (x, z, pts) => {
   }
   return inside
 }
-export function locate1(x, z) {
-  if (inPolyPts(x, z, COURTYARD)) return 'Shen Courtyard · Poorvu Dining Terrace'
-  if (inCircle(x, z, CAFE)) return `${CAFE.name} · ${CAFE.num}`
-  if (inCircle(x, z, FORUM)) return `${FORUM.name} · ${FORUM.num}`
+export function locate1(x0, z0) {
+  const [x, z] = [x0 / K, z0 / K] // thresholds below are in unspread plan units
+  if (inPolyPts(x0, z0, COURTYARD)) return 'Shen Courtyard · Poorvu Dining Terrace'
+  if (inCircle(x0, z0, CAFE)) return `${CAFE.name} · ${CAFE.num}`
+  if (inCircle(x0, z0, FORUM)) return `${FORUM.name} · ${FORUM.num}`
   if (z < -45.3) return 'Offices · 12xx'
   if (z > 44.3) return 'Offices · 15xx'
   if (z < -20 && x > -24 && x < 14) return "Charley's Place · 1220"

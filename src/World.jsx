@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import {
-  H, EAST, BOUNDS, COURTYARD, DRUMS, DRUM_WALL, WALLS, CHAIRS, SCREENS, BOARDS, LECTERNS,
+  H, K, EAST, BOUNDS, COURTYARD, DRUMS, DRUM_WALL, WALLS, CHAIRS, SCREENS, BOARDS, LECTERNS,
   STAIRS, MEETING, MEET_DOOR, BEIN, BEIN_TABLES, PLANTS, LIBRARY, RISE, TOWER_R, inPoly, ellPt, tierOutline,
 } from './layout.js'
 import { ELEV4 } from './floor4.js'
@@ -244,7 +244,7 @@ function OutsideTrees({ M }) {
       else if (side === 1) [x, z] = [46 + r() * 40, -60 + r() * 120]
       else if (side === 2) [x, z] = [-45 + r() * 120, -58 - r() * 30]
       else [x, z] = [-45 + r() * 120, 58 + r() * 30]
-      out.push([x, z, 3 + r() * 3])
+      out.push([x * K, z * K, 3 + r() * 3]) // spread with the building
     }
     return out
   }, [])
@@ -472,32 +472,32 @@ function GlassDoor({ door, M }) {
 }
 
 // ---------- meeting rooms: glass table, black chairs (in CHAIRS), giant monitor on the side wall
-function MeetingRooms({ M }) {
-  const tops = useMemo(() => MEETING.map((m) => ({ p: [m.x, 0.74, m.z], s: [2.6, 0.03, 1.2] })), [])
+export function MeetingRooms({ M, rooms = MEETING, seed = 1000 }) {
+  const tops = useMemo(() => rooms.map((m) => ({ p: [m.x, 0.74, m.z], s: [2.6, 0.03, 1.2] })), [])
   const legs = useMemo(
-    () => MEETING.flatMap((m) => [-1, 1].flatMap((sx) => [-1, 1].map((sz) => ({ p: [m.x + sx * 1.15, 0.37, m.z + sz * 0.5], s: [0.05, 0.74, 0.05] })))),
+    () => rooms.flatMap((m) => [-1, 1].flatMap((sx) => [-1, 1].map((sz) => ({ p: [m.x + sx * 1.15, 0.37, m.z + sz * 0.5], s: [0.05, 0.74, 0.05] })))),
     [],
   )
-  const bezels = useMemo(() => MEETING.map((m) => ({ p: [m.monitor.x + 0.03, 1.65, m.monitor.z], r: m.monitor.rot, s: [2.75, 1.6, 0.05] })), [])
+  const bezels = useMemo(() => rooms.map((m) => ({ p: [m.monitor.x + 0.03, 1.65, m.monitor.z], r: m.monitor.rot, s: [2.75, 1.6, 0.05] })), [])
   return (
     <>
       <Instanced items={tops} material={M.tableGlass} geometry={BOX} />
       <Instanced items={legs} material={M.mullion} geometry={BOX} />
       <Instanced items={bezels} material={M.dark} geometry={BOX} />
-      {MEETING.map((m, i) => (
+      {rooms.map((m, i) => (
         <Plane
           key={i}
           p={[m.monitor.x, 1.65, m.monitor.z]}
           rot={m.monitor.rot}
           w={2.6}
           h={1.46}
-          material={slideMat(COURSE_KEYS[i % COURSE_KEYS.length], i % 2 ? 'content' : 'chart')}
+          material={slideMat(COURSE_KEYS[(i + seed) % COURSE_KEYS.length], (i + seed) % 2 ? 'content' : 'chart')}
         />
       ))}
-      {MEETING.map((m, i) => (
+      {rooms.map((m, i) => (
         <GlassDoor key={i} door={m.door} M={M} />
       ))}
-      <MeetingLabubus />
+      <MeetingLabubus rooms={rooms} seed={seed} />
     </>
   )
 }

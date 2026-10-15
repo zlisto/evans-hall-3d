@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
-import { BOUNDS, COURTYARD, EAST, H, STAIRS, TOWER_R, inPoly } from './layout.js'
+import { BOUNDS, COURTYARD, EAST, H, K, STAIRS, TOWER_R, inPoly } from './layout.js'
 import {
   AUDITORIUM, BANQUETTE, CAFE, CAFE_COUNTER, CAFE_TABLES, CHAIRS1, COLUMNS1, COURT_DOORS, COURT_RUNS, COURT_TREES,
   DINING_TABLES, ELEV1, ENTRANCE, FORUM, FORUM_TABLES, KIOSKS, KITCHEN, LAWN, LOBBY_WALL, LOUNGE, OFFICE_DOORS1,
@@ -369,7 +369,7 @@ function Charleys({ M, F }) {
       <mesh geometry={top} material={M.tableWhite} />
       <Instanced items={tables} material={M.tableWhite} geometry={CYL} />
       <Instanced items={posts} material={F.chrome} geometry={BOX} />
-      <Plane p={[(BANQUETTE.a[0] + BANQUETTE.b[0]) / 2 + 1.2, 2.2, -36.42]} w={2.6} h={2.6} material={F.stripes} />
+      <Plane p={[(BANQUETTE.a[0] + BANQUETTE.b[0]) / 2 + 1.2, 2.2, -36.6 * K + 0.18]} w={2.6} h={2.6} material={F.stripes} />
       {KIOSKS.map(([x, z], i) => (
         <group key={i}>
           <mesh position={[x, 0.85, z]} material={M.desk} scale={[1.1, 1.7, 1.1]} geometry={BOX} />
@@ -394,7 +394,7 @@ function SouthAndLobby({ M, F }) {
         <mesh key={i} position={[l.x, 0.38, l.z]} material={M.desk} scale={[1.3, 0.06, 0.8]} geometry={BOX} />
       ))}
       {/* atrium: black-and-white photographs along the suites' back wall */}
-      {[-18, -12.5, -7, 3, 8.5, 14].map((x, i) => (
+      {[-18, -12.5, -7, 3, 8.5, 14].map((v) => v * K).map((x, i) => (
         <group key={x}>
           <mesh position={[x, 1.8, SUITE_Z[1] + 0.12]} material={M.dark} scale={[1.7, 1.25, 0.04]} geometry={BOX} />
           <Plane p={[x, 1.8, SUITE_Z[1] + 0.145]} w={1.55} h={1.12} material={F.bw[i % F.bw.length]} />

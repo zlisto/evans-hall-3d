@@ -3,6 +3,10 @@ import { useFrame } from '@react-three/fiber'
 import Labubu, { YALE_BLUE } from './Labubu.jsx'
 import { ELEV1 } from './floor1.js'
 import { ELEV4 } from './floor4.js'
+import { DRUMS, K, MEET_FRONT } from './layout.js'
+
+// middle of the back hallway, between the drums' outer walls and the meeting rooms' glass fronts
+const HALL_Z = (Math.max(...DRUMS.map((d) => d.c[1] + d.rz)) + MEET_FRONT) / 2
 
 // Labubus walking laps of the hallways on floors 1, 2 and 4. Each one follows a closed path at its own
 // speed and spacing, bobbing a little with each step.
@@ -12,7 +16,7 @@ const CLOISTER = Array.from({ length: 160 }, (_, i) => {
   const t = (i / 160) * Math.PI * 2
   const c = Math.cos(t)
   const s = Math.sin(t)
-  return [24.4 * Math.sign(c) * Math.pow(Math.abs(c), 1 / 3), 21.4 * Math.sign(s) * Math.pow(Math.abs(s), 1 / 3)]
+  return [24.4 * K * Math.sign(c) * Math.pow(Math.abs(c), 1 / 3), 21.4 * K * Math.sign(s) * Math.pow(Math.abs(s), 1 / 3)]
 })
 const reversed = [...CLOISTER].reverse()
 // out-and-back along a straight back hallway
@@ -36,12 +40,12 @@ const EXPRESSIONS = ['grin', 'happy', 'mischief', 'surprised', 'sleepy']
 const LANES = [
   [CLOISTER, 0, 4, 1.2],
   [reversed, 0, 3, 1.0],
-  [pace(39.8, -33, 21), 0, 1, 0.9],
-  [pace(-39.8, -33, 21), 0, 1, 1.1],
+  [pace(HALL_Z, -33 * K, 21 * K), 0, 1, 0.9],
+  [pace(-HALL_Z, -33 * K, 21 * K), 0, 1, 1.1],
   [CLOISTER, ELEV4, 3, 1.1],
   [reversed, ELEV4, 3, 1.3],
-  [pace(41.6, -33, 21), ELEV4, 1, 1.0],
-  [pace(-41.6, -33, 21), ELEV4, 1, 0.9],
+  [pace(HALL_Z, -33 * K, 21 * K), ELEV4, 1, 1.0],
+  [pace(-HALL_Z, -33 * K, 21 * K), ELEV4, 1, 0.9],
   [CLOISTER, ELEV1, 3, 1.0],
   [reversed, ELEV1, 3, 1.2],
 ]

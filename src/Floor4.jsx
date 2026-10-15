@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { BOUNDS, CHAIRS, COURTYARD, DRUMS, H, STAIRS, TOWER_R, WALLS, inPoly } from './layout.js'
-import { CHAIRS4, DRUMS4, ELEV4, HIGH_TABLES, OFFICE_DOORS, PLANTS4, READING, READ_DESK, READ_TABLES, WALLS4 } from './floor4.js'
-import { BOX, ClassroomStuff, Drums, Instanced, Plane, Stairs, Tiers, Walls, ribbon } from './World.jsx'
+import { CHAIRS4, DRUMS4, ELEV4, HIGH_TABLES, MEETING4, PLANTS4, READING, READ_DESK, READ_TABLES, WALLS4 } from './floor4.js'
+import { BOX, ClassroomStuff, Drums, Instanced, MeetingRooms, Plane, Stairs, Tiers, Walls, ribbon } from './World.jsx'
 import * as T from './textures.js'
 
 const TAU = Math.PI * 2
@@ -76,7 +76,7 @@ function ReadingRoom({ M }) {
 }
 
 // closed wood office doors with small number plates
-export function OfficeDoors({ M, doors = OFFICE_DOORS }) {
+export function OfficeDoors({ M, doors }) {
   const panels = useMemo(() => doors.map((d) => ({ p: [d.x, 1.1, d.z], r: d.rot, s: [1.0, 2.2, 0.05] })), [doors])
   const plates = useMemo(
     () =>
@@ -156,7 +156,7 @@ export default function Floor4({ M }) {
       <ClassroomStuff M={M} chairs={chairs} courseOf={(c) => COURSE4[c]} />
       <Stairs M={M} />
       <ReadingRoom M={M} />
-      <OfficeDoors M={M} />
+      <MeetingRooms M={M} rooms={MEETING4} seed={4000} />
       <Details M={M} />
     </group>
   )

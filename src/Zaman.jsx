@@ -4,8 +4,8 @@ import * as THREE from 'three'
 import Labubu from './Labubu.jsx'
 import { B, BOX, CAP, CYL, SPH, TORUS, m, useTalker } from './avatar.js'
 
-// Prof. Tauhid Zaman: black-and-pink BLACKPINK hoodie, nerd glasses, a pink Labubu clipped to his
-// belt loop. While you chat he turns to face you and talks with his hands.
+// Prof. Tauhid Zaman: muscular build, close-cropped buzz cut, black-and-pink BLACKPINK hoodie, a pink
+// Labubu clipped to his belt loop. While you chat he turns to face you and talks with his hands.
 
 export const ZAMAN = { slug: 'tauhid-zaman', name: 'Tauhid Zaman' }
 
@@ -15,7 +15,7 @@ const HOODIE = '#121214'
 const PINK = '#ff4fa3'
 const JEANS = '#26324d'
 
-const TORSO = new THREE.CylinderGeometry(0.19, 0.205, 0.62, 28)
+const TORSO = new THREE.CylinderGeometry(0.25, 0.2, 0.62, 28) // broad chest and shoulders, narrower waist
 
 function chestTex() {
   const c = document.createElement('canvas')
@@ -83,33 +83,33 @@ export default function Zaman({ position = [0, 0, 0], rotation = 0, talking = fa
 
       {/* hoodie body, pink hem and cuffs, kangaroo pocket, chest print */}
       <mesh geometry={TORSO} material={hood} position={[0, 1.18, 0]} />
-      <B g={CYL} c={PINK} p={[0, 0.885, 0]} s={[0.208, 0.04, 0.208]} />
-      <B g={BOX} c="#1c1c20" p={[0, 1.0, 0.19]} s={[0.24, 0.13, 0.03]} />
-      <mesh material={chest} position={[0, 1.3, 0.199]}>
+      <B g={CYL} c={PINK} p={[0, 0.885, 0]} s={[0.203, 0.04, 0.203]} />
+      <B g={BOX} c="#1c1c20" p={[0, 1.0, 0.205]} s={[0.24, 0.13, 0.03]} />
+      <mesh material={chest} position={[0, 1.3, 0.238]}>
         <planeGeometry args={[0.27, 0.085]} />
       </mesh>
-      <B c={HOODIE} p={[0, 1.47, 0]} s={[0.25, 0.09, 0.16]} />
+      <B c={HOODIE} p={[0, 1.47, 0]} s={[0.31, 0.1, 0.18]} />
       {/* hood resting behind the neck, pink lining */}
       <B c={HOODIE} p={[0, 1.5, -0.12]} s={[0.17, 0.12, 0.1]} />
       <B c={PINK} p={[0, 1.53, -0.075]} s={[0.12, 0.08, 0.05]} />
       {/* drawstrings */}
       {[-1, 1].map((sx) => (
         <group key={sx}>
-          <B g={CYL} c="#f4f4f6" p={[0.045 * sx, 1.38, 0.19]} s={[0.006, 0.17, 0.006]} />
-          <B g={CYL} c={PINK} p={[0.045 * sx, 1.29, 0.19]} s={[0.009, 0.025, 0.009]} />
+          <B g={CYL} c="#f4f4f6" p={[0.045 * sx, 1.4, 0.245]} s={[0.006, 0.17, 0.006]} />
+          <B g={CYL} c={PINK} p={[0.045 * sx, 1.31, 0.245]} s={[0.009, 0.025, 0.009]} />
         </group>
       ))}
-      <B g={CYL} c={SKIN} p={[0, 1.52, 0]} s={[0.05, 0.07, 0.05]} />
+      <B g={CYL} c={SKIN} p={[0, 1.52, 0]} s={[0.065, 0.07, 0.065]} />
 
       {/* arms: hoodie sleeves with pink cuffs. His right hand is at -x. */}
       {[
         [armR, -1],
         [armL, 1],
       ].map(([ref, sx]) => (
-        <group key={sx} ref={ref} position={[0.235 * sx, 1.43, 0]}>
-          <mesh geometry={CAP} material={hood} position={[0, -0.24, 0]} scale={[0.062, 0.2, 0.062]} />
-          <B g={CYL} c={PINK} p={[0, -0.46, 0]} s={[0.058, 0.035, 0.058]} />
-          <mesh geometry={SPH} material={skin} position={[0, -0.52, 0.01]} scale={[0.042, 0.052, 0.038]} />
+        <group key={sx} ref={ref} position={[0.3 * sx, 1.43, 0]}>
+          <mesh geometry={CAP} material={hood} position={[0, -0.24, 0]} scale={[0.085, 0.2, 0.085]} />
+          <B g={CYL} c={PINK} p={[0, -0.46, 0]} s={[0.078, 0.035, 0.078]} />
+          <mesh geometry={SPH} material={skin} position={[0, -0.52, 0.01]} scale={[0.05, 0.058, 0.045]} />
         </group>
       ))}
 
@@ -119,18 +119,10 @@ export default function Zaman({ position = [0, 0, 0], rotation = 0, talking = fa
         {[-1, 1].map((sx) => (
           <B key={sx} c={SKIN} p={[0.113 * sx, 0.055, -0.005]} s={[0.02, 0.034, 0.02]} />
         ))}
-        {/* short black hair, a little messy on top */}
-        <B c={HAIR} p={[0, 0.115, -0.018]} s={[0.12, 0.095, 0.122]} />
-        {[
-          [-0.05, 0.2, 0.04],
-          [0.01, 0.21, 0.06],
-          [0.06, 0.2, 0.03],
-          [-0.02, 0.205, -0.03],
-        ].map((p, i) => (
-          <B key={i} c={HAIR} p={p} s={[0.045, 0.03, 0.045]} />
-        ))}
+        {/* close-cropped buzz cut: a thin layer hugging the scalp, sharp line-up at the temples */}
+        <B c={HAIR} p={[0, 0.105, -0.012]} s={[0.116, 0.088, 0.12]} />
         {[-1, 1].map((sx) => (
-          <B key={sx} g={BOX} c={HAIR} p={[0.108 * sx, 0.09, -0.01]} s={[0.012, 0.06, 0.08]} />
+          <B key={sx} g={BOX} c={HAIR} p={[0.105 * sx, 0.085, 0.02]} s={[0.01, 0.045, 0.055]} />
         ))}
         {/* eyes */}
         {[-1, 1].map((sx) => (
@@ -140,18 +132,6 @@ export default function Zaman({ position = [0, 0, 0], rotation = 0, talking = fa
             <B g={BOX} c={HAIR} p={[0.044 * sx, 0.106, 0.11]} r={[0, 0, -0.08 * sx]} s={[0.042, 0.011, 0.01]} />
           </group>
         ))}
-        {/* nerd glasses: thick black frames */}
-        {[-1, 1].map((sx) => (
-          <group key={sx} position={[0.044 * sx, 0.075, 0.122]}>
-            <B g={BOX} c="#0a0a0a" p={[0, 0.022, 0]} s={[0.058, 0.01, 0.008]} />
-            <B g={BOX} c="#0a0a0a" p={[0, -0.02, 0]} s={[0.058, 0.008, 0.008]} />
-            <B g={BOX} c="#0a0a0a" p={[0.028 * sx, 0, 0]} s={[0.008, 0.05, 0.008]} />
-            <B g={BOX} c="#0a0a0a" p={[-0.028 * sx, 0, 0]} s={[0.008, 0.05, 0.008]} />
-            <B g={BOX} c="#bfe3ff" o={{ transparent: true, opacity: 0.18, roughness: 0.05 }} p={[0, 0, 0]} s={[0.05, 0.036, 0.003]} />
-            <B g={BOX} c="#0a0a0a" p={[0.06 * sx, 0.015, -0.055]} s={[0.006, 0.008, 0.11]} />
-          </group>
-        ))}
-        <B g={BOX} c="#0a0a0a" p={[0, 0.085, 0.124]} s={[0.03, 0.007, 0.007]} />
         {/* nose + big grin */}
         <B c={SKIN} p={[0, 0.04, 0.122]} s={[0.018, 0.026, 0.02]} />
         <B g={BOX} c="#5a2620" p={[0, 0.0, 0.112]} s={[0.05, 0.014, 0.008]} />
