@@ -5,7 +5,7 @@ import { B, BOX, CAP, CYL, SPH, m, useTalker } from './avatar.js'
 // One avatar for any professor, built from an `appearance` object (professor_profiles.appearance in the
 // DB, served by /api/avatars). Every field is optional:
 //   skin       CSS color
-//   hair       { color, style: 'swept' | 'short' | 'wavy' | 'curly' | 'long' | 'bun' | 'bald' }
+//   hair       { color, style: 'swept' | 'short' | 'wavy' | 'curly' | 'curlyLong' | 'long' | 'bun' | 'bald' }
 //   beard      null | 'stubble' | 'short' | 'full' | 'mustache'   (+ beardColor, defaults to hair color)
 //   glasses    null | { color, shape: 'rect' | 'round' }
 //   top        { type: 'blazer' | 'shirt' | 'sweater' | 'hoodie', color, inner }  (inner = shirt under blazer/sweater)
@@ -60,6 +60,22 @@ function Hair({ style, color }) {
         }).concat([[0, 0.21, 0], [0.04, 0.2, 0.05], [-0.04, 0.2, 0.05]]),
         0.055,
       )
+    case 'curlyLong': // shoulder-length curls: volume all round, down past the jaw
+      return tufts(
+        [
+          ...Array.from({ length: 14 }, (_, i) => {
+            const a = (i / 14) * Math.PI * 2
+            return [Math.cos(a) * 0.1, 0.16 + Math.sin(a * 2) * 0.015, Math.sin(a) * 0.1 - 0.02]
+          }),
+          [0, 0.21, 0.02], [0.05, 0.2, 0.06], [-0.05, 0.2, 0.06], [0, 0.17, -0.11],
+          ...[-1, 1].flatMap((sx) => [
+            [0.12 * sx, 0.08, -0.01], [0.13 * sx, 0.0, -0.03], [0.125 * sx, -0.08, -0.02], [0.1 * sx, -0.14, 0.0],
+            [0.07 * sx, 0.06, -0.1], [0.08 * sx, -0.04, -0.1], [0.06 * sx, -0.12, -0.08],
+          ]),
+          [0, 0.02, -0.12], [0, -0.08, -0.11],
+        ],
+        0.058,
+      )
     case 'long': // long straight hair: rounded crown, a part down the middle, strands past the shoulders
       return (
         <>
@@ -102,11 +118,15 @@ function Face({ skin, hairColor, beard, beardColor, glasses }) {
         <group key={sx}>
           <B c="#ffffff" p={[0.042 * sx, 0.075, 0.105]} s={[0.02, 0.015, 0.01]} />
           <B c="#2a1a12" p={[0.042 * sx, 0.075, 0.113]} s={[0.01, 0.011, 0.006]} />
-          <B g={BOX} c={hairColor} p={[0.044 * sx, 0.102, 0.11]} r={[0, 0, -0.06 * sx]} s={[0.042, 0.01, 0.01]} />
+          <B g={BOX} c={hairColor} p={[0.044 * sx, 0.103, 0.11]} r={[0, 0, -0.1 * sx]} s={[0.038, 0.007, 0.008]} />
         </group>
       ))}
       <B c={skin} p={[0, 0.04, 0.121]} s={[0.018, 0.028, 0.021]} />
-      <B g={BOX} c="#8a4b3e" p={[0, -0.002, 0.112]} s={[0.046, 0.01, 0.008]} />
+      {/* gentle smile: a center line with corners turned up */}
+      <B g={BOX} c="#8a4b3e" p={[0, -0.006, 0.113]} s={[0.032, 0.009, 0.008]} />
+      {[-1, 1].map((sx) => (
+        <B key={sx} g={BOX} c="#8a4b3e" p={[0.021 * sx, -0.001, 0.111]} r={[0, 0, 0.55 * sx]} s={[0.016, 0.008, 0.008]} />
+      ))}
       {beard === 'stubble' && <B c={bc} o={{ transparent: true, opacity: 0.3 }} p={[0, -0.02, 0.025]} s={[0.1, 0.06, 0.093]} />}
       {(beard === 'short' || beard === 'full') && (
         <>
