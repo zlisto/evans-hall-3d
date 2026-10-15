@@ -86,6 +86,27 @@
   "gesture": "hands",
   "accessory": null
  },
+ "john-barrios": {
+  "skin": "#eac3a5",
+  "hair": {
+   "color": "#1c1612",
+   "style": "short"
+  },
+  "beard": "stubble",
+  "glasses": null,
+  "top": {
+   "type": "shirt",
+   "color": "#e9b8cf",
+   "inner": "#ffffff"
+  },
+  "bottom": "pants",
+  "pants": "#2a2f3a",
+  "shoes": "#141210",
+  "height": 1.77,
+  "build": "broad",
+  "gesture": "hands",
+  "accessory": null
+ },
  "kai-hao-yang": {
   "skin": "#ecc9a8",
   "hair": {
