@@ -20,6 +20,27 @@
   "gesture": "hands",
   "accessory": null
  },
+ "daylian-cain": {
+  "skin": "#e8c0a2",
+  "hair": {
+   "color": "#2a1c14",
+   "style": "swept"
+  },
+  "beard": "short",
+  "glasses": null,
+  "top": {
+   "type": "blazer",
+   "color": "#4a4a50",
+   "inner": "#c9bede"
+  },
+  "bottom": "pants",
+  "pants": "#2c2c32",
+  "shoes": "#141210",
+  "height": 1.8,
+  "build": "average",
+  "gesture": "point",
+  "accessory": null
+ },
  "erin-frey": {
   "skin": "#efcfb8",
   "hair": {
