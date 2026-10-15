@@ -1,0 +1,201 @@
+{
+ "anya-nakhmurina": {
+  "skin": "#f2d4c0",
+  "hair": {
+   "color": "#9a7650",
+   "style": "curlyLong"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "blazer",
+   "color": "#ece6da",
+   "inner": "#141414"
+  },
+  "bottom": "pants",
+  "pants": "#1c1c22",
+  "shoes": "#141210",
+  "height": 1.67,
+  "build": "slim",
+  "gesture": "hands",
+  "accessory": null
+ },
+ "erin-frey": {
+  "skin": "#efcfb8",
+  "hair": {
+   "color": "#5a3a24",
+   "style": "long"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "blazer",
+   "color": "#1c2436",
+   "inner": "#1c2436"
+  },
+  "bottom": "pants",
+  "pants": "#1c2436",
+  "shoes": "#1b1714",
+  "height": 1.68,
+  "build": "slim",
+  "gesture": "hands",
+  "accessory": null
+ },
+ "jiwoong-shin": {
+  "skin": "#e8c4a2",
+  "hair": {
+   "color": "#22201e",
+   "style": "short"
+  },
+  "beard": null,
+  "glasses": {
+   "color": "#6b6b6b",
+   "shape": "rect"
+  },
+  "top": {
+   "type": "blazer",
+   "color": "#3a3c42",
+   "inner": "#c9daf0"
+  },
+  "bottom": "pants",
+  "pants": "#2a2c32",
+  "shoes": "#141210",
+  "height": 1.75,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": null
+ },
+ "kai-hao-yang": {
+  "skin": "#ecc9a8",
+  "hair": {
+   "color": "#141414",
+   "style": "short"
+  },
+  "beard": null,
+  "glasses": {
+   "color": "#222222",
+   "shape": "rect"
+  },
+  "top": {
+   "type": "blazer",
+   "color": "#2b2d33",
+   "inner": "#f4f5f7"
+  },
+  "bottom": "pants",
+  "pants": "#2b2d33",
+  "shoes": "#141210",
+  "height": 1.74,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": "tie",
+  "accessoryColor": "#2c3a66"
+ },
+ "mushfiq-mobarak": {
+  "skin": "#c08a64",
+  "hair": {
+   "color": "#141110",
+   "style": "swept"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "blazer",
+   "color": "#2b2f3a",
+   "inner": "#7f93ad"
+  },
+  "pants": "#2e3036",
+  "shoes": "#1b1714",
+  "height": 1.75,
+  "build": "slim",
+  "gesture": "point",
+  "accessory": "lapelMic"
+ },
+ "saman-majd": {
+  "skin": "#e3b896",
+  "hair": {
+   "color": "#c4c1bb",
+   "style": "short"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "blazer",
+   "color": "#1d2333",
+   "inner": "#d8e4f2"
+  },
+  "bottom": "pants",
+  "pants": "#1d2333",
+  "shoes": "#141210",
+  "height": 1.78,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": "tie",
+  "accessoryColor": "#5a1f2b"
+ },
+ "stefano-giglio": {
+  "skin": "#e9c3a3",
+  "hair": {
+   "color": "#3a2a1e",
+   "style": "short"
+  },
+  "beard": null,
+  "glasses": {
+   "color": "#9a9ea6",
+   "shape": "rect"
+  },
+  "top": {
+   "type": "blazer",
+   "color": "#3a4558",
+   "inner": "#f4f5f7"
+  },
+  "bottom": "pants",
+  "pants": "#2a2f3a",
+  "shoes": "#141210",
+  "height": 1.78,
+  "build": "average",
+  "gesture": "hands",
+  "accessory": null
+ },
+ "teresa-chahine": {
+  "skin": "#e2b48f",
+  "hair": {
+   "color": "#2e1f17",
+   "style": "curlyLong"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "shirt",
+   "color": "#7f9fcb",
+   "inner": "#7f9fcb"
+  },
+  "bottom": "pants",
+  "pants": "#2a3142",
+  "shoes": "#3a2a20",
+  "height": 1.65,
+  "build": "slim",
+  "gesture": "hands",
+  "accessory": null
+ },
+ "zoe-chance": {
+  "skin": "#f1d3c2",
+  "hair": {
+   "color": "#2a1d18",
+   "style": "bob"
+  },
+  "beard": null,
+  "glasses": null,
+  "top": {
+   "type": "sweater",
+   "color": "#d42a2a",
+   "inner": "#d42a2a"
+  },
+  "bottom": "pants",
+  "pants": "#1c1c22",
+  "shoes": "#141210",
+  "height": 1.66,
+  "build": "slim",
+  "gesture": "hands",
+  "accessory": null
+ }
+}

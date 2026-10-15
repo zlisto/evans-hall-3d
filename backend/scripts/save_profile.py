@@ -51,7 +51,21 @@ def main(path: str) -> None:
             ),
         )
     print(f"saved {p['slug']} to {DB.name}")
+    export_avatars()
+
+
+def export_avatars() -> None:
+    """Write every profile's look to data/avatars.json so the static site (GitHub Pages) shows them too."""
+    with sqlite3.connect(DB) as con:
+        rows = con.execute("SELECT slug, appearance FROM professor_profiles ORDER BY slug").fetchall()
+    looks = {slug: json.loads(a) for slug, a in rows if a and json.loads(a)}
+    out = DB.parent / "avatars.json"
+    out.write_text(json.dumps(looks, indent=1) + "\n", encoding="utf-8")
+    print(f"exported {len(looks)} looks to {out.name}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if len(sys.argv) > 1:
+        main(sys.argv[1])
+    else:
+        export_avatars()

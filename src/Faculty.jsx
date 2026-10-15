@@ -9,6 +9,7 @@ import { DRUMS4, ELEV4 } from './floor4.js'
 import { ELEV1 } from './floor1.js'
 import { ASSIGNMENTS, ROOM_ASSIGN } from './rooms.js'
 import { api } from './talk.js'
+import SAVED_LOOKS from '../data/avatars.json'
 
 // hand-built avatars, keyed by backend slug. Everyone else with a researched look in the DB
 // (professor_profiles.appearance, via /api/avatars) gets a PersonAvatar.
@@ -66,11 +67,13 @@ function roomItems(drums, y) {
 
 export default function Faculty({ talkingTo, onTalk }) {
   const items = useMemo(() => [...roomItems(DRUMS, 0), ...roomItems(DRUMS4, ELEV4)], [])
-  const [looks, setLooks] = useState({}) // slug -> appearance from the backend
+  // slug -> appearance. Starts from the copy saved with the site (so GitHub Pages shows everyone),
+  // then takes the backend's live list when it's reachable.
+  const [looks, setLooks] = useState(SAVED_LOOKS)
   useEffect(() => {
     api('/avatars')
-      .then(setLooks)
-      .catch(() => {}) // backend offline: those rooms just keep their plaque
+      .then((live) => setLooks({ ...SAVED_LOOKS, ...live }))
+      .catch(() => {}) // backend offline: keep the saved looks
   }, [])
   return (
     <>
