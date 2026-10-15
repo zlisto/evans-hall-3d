@@ -98,5 +98,5 @@ export default function LabubuWalkers() {
     }
     return out
   }, [])
-  return walkers.map((w) => <Walker key={w.key} {...w} />)
+  return walkers.map(({ key, ...w }) => <Walker key={key} {...w} />)
 }

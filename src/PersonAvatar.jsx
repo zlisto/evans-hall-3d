@@ -60,13 +60,18 @@ function Hair({ style, color }) {
         }).concat([[0, 0.21, 0], [0.04, 0.2, 0.05], [-0.04, 0.2, 0.05]]),
         0.055,
       )
-    case 'long':
+    case 'long': // long straight hair: rounded crown, a part down the middle, strands past the shoulders
       return (
         <>
-          <B c={color} p={[0, 0.12, -0.015]} s={[0.122, 0.09, 0.126]} />
-          <B g={BOX} c={color} p={[0, -0.02, -0.07]} s={[0.24, 0.3, 0.08]} />
+          <B c={color} p={[0, 0.12, -0.015]} s={[0.122, 0.095, 0.127]} />
+          <B c={color} p={[0, 0.02, -0.06]} s={[0.125, 0.16, 0.08]} />
+          <mesh geometry={CAP} material={m(color)} position={[0, -0.09, -0.07]} scale={[0.11, 0.1, 0.05]} />
           {[-1, 1].map((sx) => (
-            <B key={sx} g={BOX} c={color} p={[0.11 * sx, 0.0, 0.0]} s={[0.04, 0.26, 0.14]} />
+            <group key={sx}>
+              <mesh geometry={CAP} material={m(color)} position={[0.105 * sx, 0.0, 0.015]} rotation={[0.08, 0, -0.06 * sx]} scale={[0.032, 0.08, 0.05]} />
+              <mesh geometry={CAP} material={m(color)} position={[0.095 * sx, -0.12, 0.035]} rotation={[0.25, 0, 0.12 * sx]} scale={[0.03, 0.06, 0.035]} />
+              <B c={color} p={[0.05 * sx, 0.165, 0.07]} r={[0.5, 0, 0.35 * sx]} s={[0.07, 0.03, 0.05]} />
+            </group>
           ))}
         </>
       )
