@@ -19,14 +19,9 @@ export const TALKER_AVATARS = {
 // names for the chat window: every professor with a room can be talked to once they have an avatar
 export const TALKER_NAMES = Object.fromEntries(ASSIGNMENTS.map((a) => [a.slug, a.professor]))
 
-// Hogwarts guest professors in rooms without a real course (see data/room_assignments.json)
-export const GUEST_PROFESSOR = {
-  2400: 'dumbledore', // MGT 538 Mastering Influence & Persuasion
-  2420: 'trelawney', // HOG 403 Forecasting & Divination
-  2430: 'slughorn', // MGT 887 Negotiations
-  2220: 'moody', // MGT 800 Crisis Management in Tech
-  2230: 'flitwick', // MGT 541 Corporate Finance
-}
+// Hogwarts guest professors for any room without a real course (every classroom is assigned now;
+// Hagrid still hangs out in the courtyard)
+export const GUEST_PROFESSOR = {}
 
 function plaqueTex(name) {
   const c = document.createElement('canvas')

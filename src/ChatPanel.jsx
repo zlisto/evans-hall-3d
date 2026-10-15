@@ -120,7 +120,7 @@ export default function ChatPanel({ slug, name, onClose }) {
     }
   }
 
-  const sub = profile ? [profile.courses.join(', '), profile.rooms.join(', '), 'AI version'].filter(Boolean).join(' · ') : offline ? 'offline' : 'connecting…'
+  const sub = profile ? [profile.courses.join(', '), profile.rooms.join(', '), 'AI avatar'].filter(Boolean).join(' · ') : offline ? 'offline' : 'connecting…'
   return (
     <div className="chat" role="dialog" aria-label={`Chat with Prof. ${name}`}>
       <header>

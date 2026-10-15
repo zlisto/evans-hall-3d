@@ -84,7 +84,9 @@ def get_professor(slug: str) -> dict:
     style = load_style(slug)
     name = db.display_name(faculty)
     rooms = sorted({r["room"].title() for r in db.courses_for(faculty) if r["room"]})
-    greeting = style.greeting or f"Hi, I'm Professor {name.split()[-1]}. Ask me about my classes, or anything stats and business."
+    greeting = style.greeting or f"Hi! I'm an AI avatar of Professor {name}. Ask me about my classes, or anything stats and business."
+    if "ai avatar" not in greeting.lower():  # every greeting must say it's an AI (EU AI Act transparency)
+        greeting = f"(AI avatar of Professor {name}) {greeting}"
     return {**_summary(slug, faculty), "greeting": greeting, "rooms": rooms}
 
 

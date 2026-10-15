@@ -75,6 +75,31 @@ const DECKS = {
     content: ['Coming soon', ['A professor will teach here soon', 'Meanwhile: try the spiral stairs', 'Say hi to Handsome Dan', 'Check the schedule (press T)']],
     chart: 'models',
   },
+  mgt631: {
+    title: ['Building for Public Health', 'Entrepreneurship and intrapreneurship that scale impact'],
+    content: ['From problem to venture', ['Start with the people who have the problem', 'Prototype cheap, test in the field', 'Find a model that pays for the impact', 'Inside big orgs: intrapreneurs need allies']],
+    chart: 'timeline',
+  },
+  mgt805: {
+    title: ['Fixed Income Securities', 'Pricing bonds and managing rate risk'],
+    content: ['Bond math essentials', ['Price = Σ coupon / (1 + y)ᵗ + face / (1 + y)ᵀ', 'Yields up → prices down', 'Duration ≈ % price change per 1% rate move', 'Convexity: the curve bends in your favor']],
+    chart: 'dcf',
+  },
+  mgt897: {
+    title: ['Entrepreneurial Finance', 'Funding a startup from seed to exit'],
+    content: ['How startups raise money', ['Pre-money + new money = post-money', 'Each round dilutes the founders', 'Term sheets: liquidation preferences matter', 'Most returns come from a few big winners']],
+    chart: 'funnel',
+  },
+  mgt816: {
+    title: ['The Private Firm CFO', 'Accounting and finance strategy without a stock price'],
+    content: ['What a private-company CFO owns', ['Cash is king: forecast it weekly', 'Lenders and owners read your statements', 'Valuation without a market price', 'Plan the exit: sale, recap, or IPO']],
+    chart: 'balance',
+  },
+  mgt880: {
+    title: ['Sales and Negotiation', 'Figure out the other side'],
+    content: ['Persuade by understanding', ['Ask before you pitch', 'Find what the other side really needs', 'Anchor with care; trade on differences', 'Honesty builds the next deal too']],
+    chart: 'payoff',
+  },
   mgt887: {
     title: ['Negotiation as a Game', 'BATNA, ZOPA, and the Prisoner’s Dilemma'],
     content: ['Before you sit down', ['Know your BATNA — and estimate theirs', 'Find the ZOPA: where both say yes', 'Trade on differences in what you value', 'Repeated games reward cooperation']],

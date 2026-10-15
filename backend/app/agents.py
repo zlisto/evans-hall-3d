@@ -81,6 +81,7 @@ def build_prompt(faculty: str, slug: str) -> str:
     classroom = "\n".join(f"- {rooms.describe(r)}" for r in rooms.for_professor(slug))
     return (
         template.replace("{{NAME}}", db.display_name(faculty))
+        .replace("{{LAST}}", db.display_name(faculty).split()[-1])
         .replace("{{BIO}}", db.bio_for(faculty) or "(No bio in the catalog.)")
         .replace("{{COURSES}}", format_courses(db.courses_for(faculty)))
         .replace("{{BACKGROUND}}", load_background(slug))
