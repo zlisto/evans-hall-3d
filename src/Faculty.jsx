@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import Professor, { PROFESSORS } from './Professor.jsx'
 import Zaman, { ZAMAN } from './Zaman.jsx'
 import Schott, { SCHOTT } from './Schott.jsx'
+import { DEAN_NAME, DEAN_SLUG } from './Dean.jsx'
 import PersonAvatar from './PersonAvatar.jsx'
 import { DRUMS, K, LECTERNS } from './layout.js'
 import { DRUMS4, ELEV4 } from './floor4.js'
@@ -18,7 +19,17 @@ export const TALKER_AVATARS = {
   [SCHOTT.slug]: { Avatar: Schott, ...SCHOTT },
 }
 // names for the chat window: every professor with a room can be talked to once they have an avatar
-export const TALKER_NAMES = Object.fromEntries(ASSIGNMENTS.map((a) => [a.slug, a.professor]))
+export const TALKER_NAMES = {
+  ...Object.fromEntries(ASSIGNMENTS.map((a) => [a.slug, a.professor])),
+  [DEAN_SLUG]: DEAN_NAME,
+}
+
+// how the talk hint addresses them ("Dean Charles" vs "Prof. Cain")
+export function talkerTitle(slug) {
+  if (slug === DEAN_SLUG) return 'Dean Charles'
+  const name = TALKER_NAMES[slug]
+  return name ? `Prof. ${name.split(' ').slice(-1)[0]}` : slug
+}
 
 // Hogwarts guest professors for any room without a real course (every classroom is assigned now;
 // Hagrid still hangs out in the courtyard)

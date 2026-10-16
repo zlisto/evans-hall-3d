@@ -700,6 +700,40 @@ body,
   }
 }
 
+/* ---------- Dean's welcome at the spawn */
+.speech {
+  position: fixed;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  max-width: min(540px, calc(100vw - 32px));
+  padding: 14px 18px;
+  background: rgba(11, 11, 13, 0.88);
+  border: 1px solid var(--pink);
+  border-radius: 16px;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 0 24px rgba(255, 79, 163, 0.35);
+  z-index: 8;
+}
+
+.speech b {
+  display: block;
+  color: var(--pink);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+@media (pointer: coarse), (max-width: 700px) {
+  .speech {
+    bottom: 180px;
+  }
+}
+
 /* ---------- schedule overlay (who teaches where) */
 .schedtoggle {
   right: 112px;

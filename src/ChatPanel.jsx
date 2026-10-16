@@ -65,6 +65,9 @@ export default function ChatPanel({ slug, name, onClose }) {
   const box = useRef()
   const field = useRef()
   const last = name.split(' ').slice(-1)[0]
+  const isDean = slug === 'kerwin-charles'
+  const title = isDean ? `Dean ${name}` : `Prof. ${name}`
+  const shortTitle = isDean ? 'Dean Charles' : `Prof. ${last}`
 
   useEffect(() => {
     memory.set(slug, { profile, messages, sessionId })
@@ -81,10 +84,10 @@ export default function ChatPanel({ slug, name, onClose }) {
         setOffline(true)
         setMessages([
           { role: 'prof', text: introFor(slug, name), offline: true },
-          { role: 'system', text: `Prof. ${last}'s AI brain is offline right now, so that's a recorded intro. Chat comes back when the backend is running.` },
+          { role: 'system', text: `${shortTitle}'s AI brain is offline right now, so that's a recorded intro. Chat comes back when the backend is running.` },
         ])
       })
-  }, [slug, profile, last, name])
+  }, [slug, profile, last, name, shortTitle])
 
   useEffect(() => {
     const load = () => api('/usage').then((m) => setUsage({ spent: m.spent_usd, limit: m.limit_usd }))
@@ -127,20 +130,26 @@ export default function ChatPanel({ slug, name, onClose }) {
         setUsage((u) => ({ spent: Math.max(u?.spent ?? 0, u?.limit ?? 0), limit: u?.limit ?? 0 })) // server says we're out
         return
       }
-      setMessages((m) => [...m, { role: 'system', text: `Couldn't reach Prof. ${last}: ${err.message}` }])
+      setMessages((m) => [...m, { role: 'system', text: `Couldn't reach ${shortTitle}: ${err.message}` }])
     } finally {
       setBusy(false)
       field.current?.focus()
     }
   }
 
-  const sub = profile ? [profile.courses.join(', '), profile.rooms.join(', '), 'AI avatar'].filter(Boolean).join(' · ') : offline ? 'offline' : 'connecting…'
+  const sub = profile
+    ? [profile.courses.join(', '), profile.rooms.join(', '), 'AI avatar'].filter(Boolean).join(' · ')
+    : offline
+      ? isDean
+        ? 'Dean · Yale SOM · offline'
+        : 'offline'
+      : 'connecting…'
   return (
-    <div className="chat" role="dialog" aria-label={`Chat with Prof. ${name}`}>
+    <div className="chat" role="dialog" aria-label={`Chat with ${title}`}>
       <header>
         <div className="chat-avatar">{name.split(' ').map((w) => w[0]).join('')}</div>
         <div className="chat-title">
-          <b>Prof. {name}</b>
+          <b>{title}</b>
           <span>{sub}</span>
         </div>
         <button className="chat-close" onClick={() => onClose(true)} aria-label="Close chat and keep walking">

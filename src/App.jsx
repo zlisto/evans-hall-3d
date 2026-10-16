@@ -7,7 +7,8 @@ import TouchControls from './TouchControls.jsx'
 import TalkAim from './TalkAim.jsx'
 import ChatPanel from './ChatPanel.jsx'
 import Schedule from './Schedule.jsx'
-import { TALKER_NAMES } from './Faculty.jsx'
+import { TALKER_NAMES, talkerTitle } from './Faculty.jsx'
+import GREETINGS from '../data/greetings.json'
 import { EYE, SPAWN } from './layout.js'
 import { onIdentity, presence } from './mvw.js'
 import { setMuted } from './audio.js'
@@ -98,10 +99,10 @@ export default function App({ onExit }) {
       {aimAt && playing && !chat && (
         <div className="talkhint">
           {touchOn ? (
-            <button onClick={() => openChat(aimAt)}>💬 Talk to Prof. {TALKER_NAMES[aimAt]?.split(' ').slice(-1)[0]}</button>
+            <button onClick={() => openChat(aimAt)}>💬 Talk to {talkerTitle(aimAt)}</button>
           ) : (
             <span>
-              <b>Click</b> or <b>E</b> to talk to Prof. {TALKER_NAMES[aimAt]?.split(' ').slice(-1)[0]}
+              <b>Click</b> or <b>E</b> to talk to {talkerTitle(aimAt)}
             </span>
           )}
         </div>
@@ -112,6 +113,12 @@ export default function App({ onExit }) {
         <span className="dot" />
         {where}
       </div>
+      {playing && !chat && where.includes('Dean Kerwin Charles') && (
+        <div className="speech">
+          <b>Kerwin Charles · Dean, Yale SOM</b>
+          {GREETINGS['kerwin-charles']?.replace(/\*\*/g, '')}
+        </div>
+      )}
       {hello && (
         <div className="mvw-hello" style={hello.color ? { borderColor: hello.color } : undefined}>
           Welcome to Yale SOM, <b>{hello.name}</b>!
@@ -138,7 +145,7 @@ export default function App({ onExit }) {
           <div className="card">
             <div className="kicker">Yale SOM · Evans Hall</div>
             <h1>Evans Hall</h1>
-            <p className="sub">Floor 1: the courtyard, McNay Café and Charley's. Floors 2 and 4: the classroom drums. The spiral stairs on the west side connect them all.</p>
+            <p className="sub">Dean Kerwin Charles greets you at the door. Floor 1: the courtyard, McNay Café and Charley's. Floors 2 and 4: the classroom drums. The spiral stairs on the west side connect them all.</p>
             <button className="go">{isTouch ? 'Tap to walk in' : 'Click to walk in'}</button>
             {!isTouch && (
               <button

@@ -20,6 +20,7 @@ import LabubuCrowd from './LabubuCrowd.jsx'
 import LabubuWalkers from './LabubuWalkers.jsx'
 import Faculty from './Faculty.jsx'
 import HandsomeDan from './HandsomeDan.jsx'
+import Dean from './Dean.jsx'
 import { COURSE_KEYS, slideTex } from './slides.js'
 import { rng } from './textures.js'
 
@@ -561,6 +562,7 @@ export default function World({ talkingTo, onTalk }) {
       <LabubuCrowd />
       <LabubuWalkers />
       <Faculty talkingTo={talkingTo} onTalk={onTalk} />
+      <Dean talking={talkingTo === 'kerwin-charles'} onTalk={onTalk} />
       <HandsomeDan />
       <SpiralTowers M={M} />
       <SquarePortal />

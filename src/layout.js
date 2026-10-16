@@ -19,6 +19,10 @@ export const EYE = 1.65
 export const R_PLAYER = 0.35
 export const SPAWN = { x: -24.4 * K, z: 22 * K } // SW corner by Class of 1980, facing north (photo 1)
 
+// Dean Kerwin Charles greets you just north of the default spawn, facing south toward arrivals
+export const DEAN = { x: -23.6 * K, z: 19.6 * K, r: 0.4 }
+export const DEAN_TALK = 3.4 // meters: how close to hear his welcome
+
 // corridors are 25% wider than the first pass (gaps 2.5 m, cloister ~7 m, back halls ~4.4 m)
 export const BOUNDS = { xMin: -40.75 * K, xMax: 28.75 * K, zMin: -48.3 * K, zMax: 48.3 * K }
 export const EAST = BOUNDS.xMax
@@ -349,11 +353,20 @@ export function collide(pos, list = COLLIDERS) {
         pos.z = qz + (ez / d) * rr
       }
     }
+    const ox = pos.x - DEAN.x
+    const oz = pos.z - DEAN.z
+    const od = Math.hypot(ox, oz)
+    const drr = R_PLAYER + DEAN.r
+    if (od < drr && od > 1e-6) {
+      pos.x = DEAN.x + (ox / od) * drr
+      pos.z = DEAN.z + (oz / od) * drr
+    }
   }
   return pos
 }
 
 export function locate(x, z) {
+  if (Math.hypot(x - DEAN.x, z - DEAN.z) < DEAN_TALK) return 'with Dean Kerwin Charles'
   for (const d of DRUMS) {
     if (((x - d.c[0]) / d.rx) ** 2 + ((z - d.c[1]) / d.rz) ** 2 < 1) return `${d.name} · ${d.id}`
   }
