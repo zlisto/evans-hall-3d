@@ -31,6 +31,7 @@ export function audio() {
     comp.ratio.value = 3
     master.connect(comp).connect(ctx.destination)
     music = ctx.createGain()
+    music.gain.value = 0.55 // a bit quieter than full so the world isn't drowned out
     music.connect(master)
     const verb = ctx.createConvolver()
     verb.buffer = impulse(3.2, 2.6)
@@ -246,7 +247,7 @@ export function playSong(stepSeconds, step) {
   if (timer) return
   music.gain.cancelScheduledValues(ctx.currentTime)
   music.gain.setValueAtTime(0, ctx.currentTime)
-  music.gain.linearRampToValueAtTime(1, ctx.currentTime + 2)
+  music.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 2) // match the quieter music bus level
   let i = 0
   let next = ctx.currentTime + 0.1
   timer = setInterval(() => {

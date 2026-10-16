@@ -15,7 +15,7 @@ import { onIdentity, presence } from './mvw.js'
 import { setMuted } from './audio.js'
 import { startSong } from './song.js'
 
-export default function App({ onExit }) {
+export default function App() {
   const [locked, setLocked] = useState(false)
   const [where, setWhere] = useState('')
   const [showMap, setShowMap] = useState(true)
@@ -178,15 +178,6 @@ export default function App({ onExit }) {
                 <span><b>Esc</b> pause</span>
               </div>
             )}
-            <button
-              className="logout"
-              onClick={(e) => {
-                e.stopPropagation()
-                onExit()
-              }}
-            >
-              Back to Handsome Dan
-            </button>
           </div>
         </div>
       )}
