@@ -4,7 +4,12 @@
   "description": "Yale School of Management's Evans Hall on three floors: round classrooms where AI avatars of real professors teach (click one to chat), Labubu students, glass meeting rooms, spiral stairs, a café and a courtyard. Every professor here is an AI avatar, not the real person.",
   "spawns": {
     "default": "Floor 2, southwest corner of the cloister by the Class of 1980 classroom, facing north along the hallway",
-    "from_square": "Floor 2, west cloister, just in front of the Metaverse Square portal by the Ross Library glass, facing east into the building"
+    "from_square": "Floor 2, west cloister, just in front of the Metaverse Square portal by the Ross Library glass, facing east into the building",
+    "from_darul": "Floor 2, west cloister, in front of the Darul Kebab portal",
+    "from_hpa": "Floor 2, west cloister, in front of the HPA Office portal",
+    "from_lighthouse": "Floor 2, west cloister, in front of the Lighthouse of Alexandria portal",
+    "room_2200": "Floor 2, west cloister by Blumetti Classroom 2200 (Tauhid Zaman), facing south",
+    "from_starter": "Same as room_2200 — arriving from Starter World"
   },
   "portals": [
     {
@@ -13,6 +18,27 @@
       "href": "https://zlisto.github.io/hub_world/",
       "spawn": "by_evans_hall_3d",
       "where": "Floor 2, west cloister, a glowing pink doorway against the Ross Library glass"
+    },
+    {
+      "id": "to_darul_kebab",
+      "label": "Darul Kebab",
+      "href": "https://zlisto.github.io/darul_kebab/",
+      "spawn": "front_door",
+      "where": "Floor 2, west cloister, beside the Metaverse Square portal"
+    },
+    {
+      "id": "to_hpa_office",
+      "label": "HPA Office",
+      "href": "https://baggs99.github.io/som-explore/office.html",
+      "spawn": "default",
+      "where": "Floor 2, west cloister, beside the Metaverse Square portal"
+    },
+    {
+      "id": "to_lighthouse",
+      "label": "Lighthouse of Alexandria",
+      "href": "https://zlisto.github.io/lighthouse-of-alexandria/",
+      "spawn": "from_square",
+      "where": "Floor 2, west cloister, a gold bridge doorway to the ancient world"
     }
   ]
 }

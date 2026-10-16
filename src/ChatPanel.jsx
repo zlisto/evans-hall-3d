@@ -2,6 +2,14 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { api, ensureSession, newSession } from './talk.js'
 import GREETINGS from '../data/greetings.json'
 import { ASSIGNMENTS } from './rooms.js'
+import { DOORS, MY_ID, SQUARE } from './metaverse.js'
+import { navigate } from './mvw.js'
+import { fadeOut, whoosh } from './audio.js'
+
+const DEAN_DESTINATIONS = [
+  { label: 'Metaverse Square', sub: 'every world · portal', href: SQUARE, spawn: `by_${MY_ID}`, back: 'from_square' },
+  ...DOORS.map((d) => ({ label: d.label, sub: d.sub, href: d.href, spawn: d.spawn, back: d.back })),
+]
 
 const TOOL_LABELS = {
   search_courses: 'searched the course catalog',
@@ -179,6 +187,30 @@ export default function ChatPanel({ slug, name, onClose }) {
             <div className="bubble">{msg.role === 'prof' ? <Rich text={msg.text} /> : msg.text}</div>
           </div>
         ))}
+        {isDean && (
+          <div className="world-list">
+            <p className="world-none">I can send you through a doorway from here:</p>
+            {DEAN_DESTINATIONS.map((d) => (
+              <div key={d.label} className="world-card ok">
+                <div className="world-head">
+                  <span className="world-dot" />
+                  <b>{d.label}</b>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fadeOut()
+                      whoosh()
+                      navigate(d.href, d.spawn, d.back)
+                    }}
+                  >
+                    Go →
+                  </button>
+                </div>
+                <span className="world-host">{d.sub}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {limitHit && (
           <div className="limit-flash" role="alert">
             <b>Free Tier Limit Reached</b>
@@ -188,7 +220,7 @@ export default function ChatPanel({ slug, name, onClose }) {
         {busy && (
           <div className="msg prof">
             <div className="bubble thinking">
-              Prof. {last} is thinking<i>.</i>
+              {shortTitle} is thinking<i>.</i>
               <i>.</i>
               <i>.</i>
             </div>
@@ -206,7 +238,7 @@ export default function ChatPanel({ slug, name, onClose }) {
           ref={field}
           rows={1}
           value={input}
-          placeholder={limitHit ? 'Chat limit reached' : `Ask Prof. ${last} anything…`}
+          placeholder={limitHit ? 'Chat limit reached' : `Ask ${shortTitle} anything…`}
           disabled={limitHit}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {

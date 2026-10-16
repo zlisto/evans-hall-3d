@@ -14,7 +14,7 @@ import SpiralTowers from './SpiralTowers.jsx'
 import * as T from './textures.js'
 import { MeetingLabubus } from './LabubuParty.jsx'
 import Portal from './Portal.jsx'
-import { MY_ID, PORTAL, SQUARE } from './metaverse.js'
+import { DOORS, MY_ID, PORTAL, SQUARE } from './metaverse.js'
 import { levelOf } from './levels.js'
 import LabubuCrowd from './LabubuCrowd.jsx'
 import LabubuWalkers from './LabubuWalkers.jsx'
@@ -541,7 +541,15 @@ function SquarePortal() {
     const on2 = levelOf(camera.position.y - EYE) === 2
     if (on2 !== here) setHere(on2)
   })
-  return here ? <Portal {...PORTAL} href={SQUARE} spawn={`by_${MY_ID}`} back="from_square" label="Metaverse Square" /> : null
+  if (!here) return null
+  return (
+    <>
+      <Portal {...PORTAL} href={SQUARE} spawn={`by_${MY_ID}`} back="from_square" label="Metaverse Square" />
+      {DOORS.map((d) => (
+        <Portal key={d.id} x={d.x} z={d.z} rot={d.rot} href={d.href} spawn={d.spawn} back={d.back} label={d.label} sub={d.sub} color={d.color} />
+      ))}
+    </>
+  )
 }
 
 export default function World({ talkingTo, onTalk }) {
