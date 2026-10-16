@@ -2,14 +2,6 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { api, ensureSession, newSession } from './talk.js'
 import GREETINGS from '../data/greetings.json'
 import { ASSIGNMENTS } from './rooms.js'
-import { DOORS, MY_ID, SQUARE } from './metaverse.js'
-import { navigate } from './mvw.js'
-import { fadeOut, whoosh } from './audio.js'
-
-const DEAN_DESTINATIONS = [
-  { label: 'Metaverse Square', sub: 'every world · portal', href: SQUARE, spawn: `by_${MY_ID}`, back: 'from_square' },
-  ...DOORS.map((d) => ({ label: d.label, sub: d.sub, href: d.href, spawn: d.spawn, back: d.back })),
-]
 
 const TOOL_LABELS = {
   search_courses: 'searched the course catalog',
@@ -73,9 +65,8 @@ export default function ChatPanel({ slug, name, onClose }) {
   const box = useRef()
   const field = useRef()
   const last = name.split(' ').slice(-1)[0]
-  const isDean = slug === 'kerwin-charles'
-  const title = isDean ? `Dean ${name}` : `Prof. ${name}`
-  const shortTitle = isDean ? 'Dean Charles' : `Prof. ${last}`
+  const title = `Prof. ${name}`
+  const shortTitle = `Prof. ${last}`
 
   useEffect(() => {
     memory.set(slug, { profile, messages, sessionId })
@@ -148,9 +139,7 @@ export default function ChatPanel({ slug, name, onClose }) {
   const sub = profile
     ? [profile.courses.join(', '), profile.rooms.join(', '), 'AI avatar'].filter(Boolean).join(' · ')
     : offline
-      ? isDean
-        ? 'Dean · Yale SOM · offline'
-        : 'offline'
+      ? 'offline'
       : 'connecting…'
   return (
     <div className="chat" role="dialog" aria-label={`Chat with ${title}`}>
@@ -187,30 +176,6 @@ export default function ChatPanel({ slug, name, onClose }) {
             <div className="bubble">{msg.role === 'prof' ? <Rich text={msg.text} /> : msg.text}</div>
           </div>
         ))}
-        {isDean && (
-          <div className="world-list">
-            <p className="world-none">I can send you through a doorway from here:</p>
-            {DEAN_DESTINATIONS.map((d) => (
-              <div key={d.label} className="world-card ok">
-                <div className="world-head">
-                  <span className="world-dot" />
-                  <b>{d.label}</b>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      fadeOut()
-                      whoosh()
-                      navigate(d.href, d.spawn, d.back)
-                    }}
-                  >
-                    Go →
-                  </button>
-                </div>
-                <span className="world-host">{d.sub}</span>
-              </div>
-            ))}
-          </div>
-        )}
         {limitHit && (
           <div className="limit-flash" role="alert">
             <b>Free Tier Limit Reached</b>

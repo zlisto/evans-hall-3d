@@ -6,9 +6,10 @@ import Minimap from './Minimap.jsx'
 import TouchControls from './TouchControls.jsx'
 import TalkAim from './TalkAim.jsx'
 import ChatPanel from './ChatPanel.jsx'
+import DeanPanel from './DeanPanel.jsx'
 import Schedule from './Schedule.jsx'
 import { TALKER_NAMES, talkerTitle } from './Faculty.jsx'
-import GREETINGS from '../data/greetings.json'
+import { DEAN_SLUG } from './Dean.jsx'
 import { EYE, SPAWN } from './layout.js'
 import { onIdentity, presence } from './mvw.js'
 import { setMuted } from './audio.js'
@@ -52,12 +53,15 @@ export default function App({ onExit }) {
   useEffect(() => {
     if (where) presence(`Yale SOM · ${where}`)
   }, [where])
-  const [hello, setHello] = useState(null)
+  const [hello, setHello] = useState(null) // brief toast when the Metaverse Browser sends a name
+  const [visitor, setVisitor] = useState(null) // lasting name for Dean's greeting
   useEffect(
     () =>
       onIdentity(({ name, color }) => {
         if (!name) return
-        setHello({ name: String(name).slice(0, 40), color: /^#[0-9a-f]{3,8}$/i.test(color ?? '') ? color : null })
+        const who = { name: String(name).slice(0, 40), color: /^#[0-9a-f]{3,8}$/i.test(color ?? '') ? color : null }
+        setVisitor(who.name)
+        setHello(who)
         setTimeout(() => setHello(null), 6000)
       }),
     [],
@@ -107,18 +111,16 @@ export default function App({ onExit }) {
           )}
         </div>
       )}
-      {chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} />}
+      {chat === DEAN_SLUG ? (
+        <DeanPanel key={chat} visitor={visitor} onClose={closeChat} />
+      ) : (
+        chat && <ChatPanel key={chat} slug={chat} name={TALKER_NAMES[chat] ?? chat} onClose={closeChat} />
+      )}
 
       <div className="where">
         <span className="dot" />
         {where}
       </div>
-      {playing && !chat && where.includes('Dean Kerwin Charles') && (
-        <div className="speech">
-          <b>Kerwin Charles · Dean, Yale SOM</b>
-          {GREETINGS['kerwin-charles']?.replace(/\*\*/g, '')}
-        </div>
-      )}
       {hello && (
         <div className="mvw-hello" style={hello.color ? { borderColor: hello.color } : undefined}>
           Welcome to Yale SOM, <b>{hello.name}</b>!

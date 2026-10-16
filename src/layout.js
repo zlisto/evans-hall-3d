@@ -19,9 +19,10 @@ export const EYE = 1.65
 export const R_PLAYER = 0.35
 export const SPAWN = { x: -24.4 * K, z: 22 * K } // SW corner by Class of 1980, facing north (photo 1)
 
-// Dean Kerwin Charles greets you just north of the default spawn, facing south toward arrivals
-export const DEAN = { x: -23.6 * K, z: 19.6 * K, r: 0.4 }
-export const DEAN_TALK = 3.4 // meters: how close to hear his welcome
+// Dean Kerwin Charles stands by the west courtyard glass, ahead of the default spawn (visible when
+// you arrive facing north, but not so close you're nose-to-nose). Cloister ≈ -24.4*K; courtyard ≈ -20*K.
+export const DEAN = { x: -21.4 * K, z: 14.5 * K, r: 0.4 }
+export const DEAN_TALK = 3.6 // meters: how close to talk
 
 // corridors are 25% wider than the first pass (gaps 2.5 m, cloister ~7 m, back halls ~4.4 m)
 export const BOUNDS = { xMin: -40.75 * K, xMax: 28.75 * K, zMin: -48.3 * K, zMax: 48.3 * K }

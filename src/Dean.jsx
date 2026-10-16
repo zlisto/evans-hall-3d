@@ -1,5 +1,5 @@
 import PersonAvatar from './PersonAvatar.jsx'
-import { DEAN } from './layout.js'
+import { DEAN, SPAWN } from './layout.js'
 import LOOK from '../data/avatars.json'
 
 // Dean Kerwin Charles greets you at the default spawn in the west cloister.
@@ -28,7 +28,7 @@ export default function Dean({ talking = false, onTalk }) {
       slug={DEAN_SLUG}
       look={LOOK_DEAN}
       position={[DEAN.x, 0, DEAN.z]}
-      rotation={Math.PI}
+      rotation={Math.atan2(SPAWN.x - DEAN.x, SPAWN.z - DEAN.z)}
       talking={talking}
       onTalk={onTalk}
     />
